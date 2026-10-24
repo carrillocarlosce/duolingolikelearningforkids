@@ -1,10 +1,8 @@
 import type { AppServices, ProgressRepository } from "@/application/ports";
 import { freshProfile } from "@/domain/progress";
 import { localISODate } from "@/infrastructure/clock";
-import {
-  UnavailableSpeechRecognition,
-  UnavailableSpeechSynth,
-} from "@/infrastructure/speech/unavailable-speech";
+import { UnavailableSpeechRecognition } from "@/infrastructure/speech/unavailable-speech";
+import { WebSpeechSynth } from "@/infrastructure/speech/web-speech-synth";
 import { IndexedDbProgressRepository } from "@/infrastructure/storage/indexed-db-progress-repository";
 import { MemoryProgressRepository } from "@/infrastructure/storage/memory-progress-repository";
 
@@ -33,7 +31,7 @@ export async function createAppServices(): Promise<AppServices> {
   return {
     progress: progress.repo,
     persistent: progress.persistent,
-    speech: new UnavailableSpeechSynth(),
+    speech: new WebSpeechSynth(),
     recognition: new UnavailableSpeechRecognition(),
   };
 }

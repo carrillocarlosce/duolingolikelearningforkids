@@ -52,10 +52,15 @@ describe("buildLessonExercises", () => {
         const exercises = buildLessonExercises(lesson.id, direction, mulberry32(4));
         expect(exercises.length).toBeGreaterThan(0);
         for (const exercise of exercises) {
-          if (exercise.type === "picture-word" || exercise.type === "word-picture") {
+          if (
+            exercise.type === "picture-word" ||
+            exercise.type === "word-picture" ||
+            exercise.type === "listen"
+          ) {
             expect(exercise.choiceIds).toContain(exercise.itemId);
           }
         }
+        expect(exercises.some((exercise) => exercise.type === "listen")).toBe(true);
       }
     }
   });

@@ -1,5 +1,7 @@
+import type { SpeechSynthPort } from "@/application/ports";
 import { practiceCards } from "@/domain/content/practice-cards";
 import type { LessonPathItem } from "@/application/get-lesson-path";
+import { SpeakButtons } from "@/presentation/components/SpeakButtons";
 import type { Copy } from "@/presentation/i18n";
 
 type LessonReaderProps = {
@@ -7,11 +9,12 @@ type LessonReaderProps = {
   t: Copy;
   saving: boolean;
   actionLabel: string;
+  speech: SpeechSynthPort;
   onBack: () => void;
   onFinish: () => void;
 };
 
-export function LessonReader({ lesson, t, saving, actionLabel, onBack, onFinish }: LessonReaderProps) {
+export function LessonReader({ lesson, t, saving, actionLabel, speech, onBack, onFinish }: LessonReaderProps) {
   const cards = practiceCards(lesson.id);
   const note = !lesson.unlocked ? t.lockedNote : lesson.completed ? t.doneNote : t.currentNote;
 
@@ -43,9 +46,12 @@ export function LessonReader({ lesson, t, saving, actionLabel, onBack, onFinish 
             <span className="text-5xl" aria-hidden="true">
               {card.emoji}
             </span>
-            <div>
+            <div className="min-w-0 flex-1">
               <p className="text-2xl font-bold leading-tight">{card.en}</p>
               <p className="text-xl font-semibold text-leaf-dark">{card.es}</p>
+              <div className="mt-2">
+                <SpeakButtons en={card.en} es={card.es} speech={speech} t={t} />
+              </div>
             </div>
           </li>
         ))}

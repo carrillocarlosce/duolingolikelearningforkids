@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import type { SpeechSynthPort } from "@/application/ports";
 import type { LessonPathItem } from "@/application/get-lesson-path";
 import { buildLessonExercises, mulberry32 } from "@/domain/build-lesson";
 import type { Answer, Exercise } from "@/domain/exercises";
@@ -16,6 +17,7 @@ import {
 import type { Copy } from "@/presentation/i18n";
 import {
   BuildSentence,
+  ListenPick,
   MatchPairs,
   PictureWord,
   TypeAnswer,
@@ -27,11 +29,12 @@ type LessonPlayProps = {
   lesson: LessonPathItem;
   direction: Direction;
   t: Copy;
+  speech: SpeechSynthPort;
   onExit: () => void;
   onFinished: (summary: { xp: number; stars: 1 | 2 | 3 }) => void;
 };
 
-export function LessonPlay({ lesson, direction, t, onExit, onFinished }: LessonPlayProps) {
+export function LessonPlay({ lesson, direction, t, speech, onExit, onFinished }: LessonPlayProps) {
   const [seed] = useState(() => Math.floor(Math.random() * 1_000_000_000));
   const exercises = useMemo(
     () => buildLessonExercises(lesson.id, direction, mulberry32(seed)),
@@ -60,6 +63,7 @@ export function LessonPlay({ lesson, direction, t, onExit, onFinished }: LessonP
         t={t}
         saving={false}
         actionLabel={t.start}
+        speech={speech}
         onBack={onExit}
         onFinish={() => {
           if (lesson.unlocked && exercises.length > 0) setPhase("play");
@@ -173,6 +177,7 @@ export function LessonPlay({ lesson, direction, t, onExit, onFinished }: LessonP
               }
             }}
             onEnter={check}
+            speech={speech}
           />
         ) : null}
       </div>
@@ -237,6 +242,7 @@ function ExerciseBody({
   onText,
   onSolved,
   onEnter,
+  speech,
 }: {
   exercise: Exercise;
   t: Copy;
@@ -247,6 +253,7 @@ function ExerciseBody({
   onText: (text: string) => void;
   onSolved: () => void;
   onEnter: () => void;
+  speech: SpeechSynthPort;
 }) {
   const selected = draft?.type === "choice" ? draft.choiceId : null;
   switch (exercise.type) {
@@ -264,6 +271,17 @@ function ExerciseBody({
       return <BuildSentence exercise={exercise} t={t} disabled={disabled} onDraft={onTokens} />;
     case "type":
       return <TypeAnswer exercise={exercise} t={t} disabled={disabled} onDraft={onText} onEnter={onEnter} />;
+    case "listen":
+      return (
+        <ListenPick
+          exercise={exercise}
+          t={t}
+          speech={speech}
+          selected={selected}
+          disabled={disabled}
+          onSelect={onSelect}
+        />
+      );
     default:
       return null;
   }

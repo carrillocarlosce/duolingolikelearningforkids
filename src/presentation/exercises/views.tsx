@@ -1,8 +1,10 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { SpeechSynthPort } from "@/application/ports";
 import { getVocab } from "@/domain/content/vocabulary";
 import type { Exercise } from "@/domain/exercises";
+import { SPEECH_RATE_NORMAL, SPEECH_RATE_SLOW } from "@/domain/speech";
 import type { Copy } from "@/presentation/i18n";
 
 function choiceClass(selected: boolean): string {
@@ -229,6 +231,96 @@ export function BuildSentence({
             className="rounded-xl bg-white px-3 py-2 text-xl font-bold shadow-[0_3px_0_#e4e4e4] disabled:opacity-30"
           >
             {tile}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function ListenPick({
+  exercise,
+  t,
+  speech,
+  selected,
+  disabled,
+  onSelect,
+}: {
+  exercise: Extract<Exercise, { type: "listen" }>;
+  t: Copy;
+  speech: SpeechSynthPort;
+  selected: string | null;
+  disabled: boolean;
+  onSelect: (id: string) => void;
+}) {
+  const [slow, setSlow] = useState(false);
+  const [settled, setSettled] = useState(() => {
+    if (typeof window === "undefined" || !window.speechSynthesis) return true;
+    return window.speechSynthesis.getVoices().length > 0;
+  });
+  const rate = slow ? SPEECH_RATE_SLOW : SPEECH_RATE_NORMAL;
+  const missing = settled && !speech.hasVoice(exercise.audioLang);
+
+  useEffect(() => {
+    const synth = window.speechSynthesis;
+    if (!synth) return;
+    const mark = () => {
+      if (synth.getVoices().length > 0) setSettled(true);
+    };
+    synth.addEventListener("voiceschanged", mark);
+    const timer = window.setTimeout(() => setSettled(true), 700);
+    return () => {
+      synth.removeEventListener("voiceschanged", mark);
+      window.clearTimeout(timer);
+    };
+  }, []);
+
+  useEffect(() => {
+    speech.speak(exercise.audioText, exercise.audioLang, SPEECH_RATE_NORMAL);
+    return () => speech.stop();
+  }, [exercise.audioLang, exercise.audioText, exercise.id, speech]);
+
+  return (
+    <div className="flex flex-col gap-4">
+      <h2 className="text-center text-2xl font-bold">{t.hearWord}</h2>
+      <div className="flex justify-center gap-3">
+        <button
+          type="button"
+          onClick={() => speech.speak(exercise.audioText, exercise.audioLang, rate)}
+          className="grid size-24 place-items-center rounded-full bg-sky text-4xl text-white shadow-[0_4px_0_#1899d6]"
+          aria-label={t.listen}
+        >
+          🔊
+        </button>
+        <button
+          type="button"
+          aria-pressed={slow}
+          aria-label={t.slow}
+          onClick={() => {
+            setSlow((value) => !value);
+            speech.speak(exercise.audioText, exercise.audioLang, slow ? SPEECH_RATE_NORMAL : SPEECH_RATE_SLOW);
+          }}
+          className="grid size-24 place-items-center rounded-full bg-white text-4xl shadow-[0_4px_0_#e4e4e4]"
+        >
+          🐢
+        </button>
+      </div>
+      {missing ? (
+        <p className="rounded-2xl bg-cream px-4 py-3 text-center text-xl font-bold">
+          {t.noVoice} {exercise.audioText}
+        </p>
+      ) : null}
+      <div className="grid gap-3">
+        {exercise.choiceIds.map((id) => (
+          <button
+            key={id}
+            type="button"
+            disabled={disabled}
+            aria-pressed={selected === id}
+            onClick={() => onSelect(id)}
+            className={choiceClass(selected === id)}
+          >
+            {getVocab(id)[exercise.answerLang]}
           </button>
         ))}
       </div>

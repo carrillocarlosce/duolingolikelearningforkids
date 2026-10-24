@@ -174,6 +174,25 @@ function buildSentence(
   };
 }
 
+function listenWord(
+  item: VocabItem,
+  prompt: Lang,
+  answer: Lang,
+  pool: readonly string[],
+  rng: () => number,
+): Exercise {
+  return {
+    id: "",
+    type: "listen",
+    itemId: item.id,
+    choiceIds: choices(item.id, pool, rng),
+    audioLang: prompt,
+    answerLang: answer,
+    audioText: item[prompt],
+    answerText: item[answer],
+  };
+}
+
 function matchPairs(items: readonly VocabItem[], direction: Direction, rng: () => number): Exercise {
   const pairs = items.slice(0, 4);
   const translating = direction === "en-es" || direction === "es-en";
@@ -186,7 +205,7 @@ function matchPairs(items: readonly VocabItem[], direction: Direction, rng: () =
   return { id: "", type: "match", left, right };
 }
 
-/** Core practice for one lesson. Listen, tracing, and speaking are added by later steps. */
+/** Practice round for one lesson. Tracing and speaking aloud are added later. */
 export function buildLessonExercises(
   lessonId: string,
   direction: Direction,
@@ -217,6 +236,8 @@ export function buildLessonExercises(
     if (words[0]) steps.push(typeWord(words[0], prompt, answer, translating));
     if (words.length >= 2) steps.push(matchPairs(words, direction, rng));
   }
+
+  words.slice(0, 2).forEach((word) => steps.push(listenWord(word, prompt, answer, pool, rng)));
 
   return steps.map((step, index) => ({ ...step, id: `${lessonId}-${index}-${step.type}` }));
 }
