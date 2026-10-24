@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "NEXT_TELEMETRY_DISABLED=1 next dev",
-    "build": "NEXT_TELEMETRY_DISABLED=1 next build",
+    "build": "NEXT_TELEMETRY_DISABLED=1 next build && node scripts/generate-sw.mjs",
     "preview": "node scripts/preview.mjs",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
