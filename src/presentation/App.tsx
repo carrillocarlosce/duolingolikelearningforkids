@@ -1,53 +1,116 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { getLessonPath, type LessonPathItem } from "@/application/get-lesson-path";
-import { createAppServices } from "@/composition/create-services";
-import type { Lang } from "@/domain/language";
+import { loadLearnerState } from "@/application/load-learner-state";
+import type { AppServices } from "@/application/ports";
+import { recordLessonResult } from "@/application/record-lesson-result";
+import { createAppServices, todayIsoDate } from "@/composition/create-services";
+import type { Direction } from "@/domain/language";
+import { completedLessonIds, type Profile } from "@/domain/progress";
 import { copy } from "@/presentation/i18n";
-import { LessonDetail } from "@/presentation/screens/LessonDetail";
+import { PipoMark } from "@/presentation/components/PipoMark";
 import { LessonMap } from "@/presentation/screens/LessonMap";
+import { LessonPlay } from "@/presentation/screens/LessonPlay";
 
 export function App() {
-  const services = useMemo(() => createAppServices(), []);
-  const [lang, setLang] = useState<Lang>("es");
-  const [nodes, setNodes] = useState<LessonPathItem[]>(() => getLessonPath([]));
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [services, setServices] = useState<AppServices | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [nodes, setNodes] = useState<LessonPathItem[]>([]);
+  const [lessonId, setLessonId] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([services.progress.getCompletedLessonIds(), services.progress.getProfile()]).then(
-      ([ids, profile]) => {
-        if (cancelled) return;
-        setNodes(getLessonPath(ids));
-        setLang(profile.uiLang);
-      },
-    );
+    createAppServices().then(async (next) => {
+      const loaded = await loadLearnerState(next.progress, todayIsoDate());
+      if (cancelled) return;
+      setServices(next);
+      setProfile(loaded.profile);
+      setNodes(getLessonPath(completedLessonIds(loaded.progress)));
+    });
     return () => {
       cancelled = true;
     };
-  }, [services]);
+  }, []);
 
   useEffect(() => {
-    document.documentElement.lang = lang;
-  }, [lang]);
+    if (profile) document.documentElement.lang = profile.uiLang;
+  }, [profile]);
 
   useEffect(() => {
-    if (!selectedId) return;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setSelectedId(null);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [selectedId]);
+    if (!toast) return;
+    const timer = window.setTimeout(() => setToast(null), 2800);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
 
-  const selected = nodes.find((node) => node.id === selectedId) ?? null;
+  const lang = profile?.uiLang ?? "es";
   const t = copy[lang];
+
+  if (!services || !profile) {
+    return (
+      <div className="grid min-h-dvh place-items-center px-6 text-center">
+        <div>
+          <PipoMark className="mx-auto size-28" />
+          <p className="mt-4 text-2xl font-bold">{t.loading}</p>
+        </div>
+      </div>
+    );
+  }
+
+  const selected = nodes.find((node) => node.id === lessonId) ?? null;
+
+  async function finishLesson(id: string, summary: { xp: number; stars: 1 | 2 | 3 }) {
+    if (!services) return;
+    const result = await recordLessonResult(services.progress, {
+      lessonId: id,
+      xpAwarded: summary.xp,
+      attemptXp: summary.xp,
+      stars: summary.stars,
+      today: todayIsoDate(),
+    });
+    const progress = await services.progress.getLessonProgress();
+    setProfile(result.profile);
+    setNodes(getLessonPath(completedLessonIds(progress)));
+    setToast(copy[result.profile.uiLang].saved);
+  }
+
+  async function changeDirection(direction: Direction) {
+    if (!services || !profile) return;
+    const next = { ...profile, direction };
+    setProfile(next);
+    await services.progress.saveProfile(next);
+  }
 
   return (
     <>
-      <LessonMap nodes={nodes} t={t} onSelect={setSelectedId} />
-      {selected ? <LessonDetail lesson={selected} t={t} onClose={() => setSelectedId(null)} /> : null}
+      {toast ? (
+        <p className="fixed top-3 left-1/2 z-40 w-[min(100%-1.5rem,28rem)] -translate-x-1/2 rounded-2xl bg-leaf px-4 py-3 text-center text-lg font-bold text-white shadow-[0_4px_0_#3f9a00]">
+          {toast}
+        </p>
+      ) : null}
+      {selected ? (
+        <LessonPlay
+          lesson={selected}
+          direction={profile.direction}
+          t={t}
+          onExit={() => setLessonId(null)}
+          onFinished={(summary) => void finishLesson(selected.id, summary)}
+        />
+      ) : (
+        <>
+          {!services.persistent ? (
+            <p className="mx-auto max-w-xl px-4 pt-4 text-center text-base font-semibold">{t.notSaved}</p>
+          ) : null}
+          <LessonMap
+            nodes={nodes}
+            t={t}
+            direction={profile.direction}
+            onDirection={(direction) => void changeDirection(direction)}
+            onSelect={setLessonId}
+          />
+        </>
+      )}
     </>
   );
 }
