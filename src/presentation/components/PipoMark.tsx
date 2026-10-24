@@ -6,6 +6,7 @@ type PipoMarkProps = {
 /** Small original mango mark. Expressive poses come later. */
 export function PipoMark({ className, title = "Pipo" }: PipoMarkProps) {
   return (
+    <span draggable={false} className="contents">
     <svg
       viewBox="0 0 80 80"
       className={className}
@@ -27,5 +28,6 @@ export function PipoMark({ className, title = "Pipo" }: PipoMarkProps) {
         strokeLinecap="round"
       />
     </svg>
+    </span>
   );
 }

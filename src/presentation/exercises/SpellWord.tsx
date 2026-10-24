@@ -58,7 +58,7 @@ export function SpellWord({
   return (
     <div className="flex flex-col items-center gap-4" lang={tag}>
       <h2 className="text-center text-2xl font-bold">{t.spell}</h2>
-      <p className="text-6xl" aria-hidden="true">
+      <p className="text-6xl" aria-hidden="true" draggable={false}>
         {exercise.emoji}
       </p>
       {exercise.showPromptText ? (

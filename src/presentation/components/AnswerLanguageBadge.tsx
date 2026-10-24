@@ -77,9 +77,13 @@ export function AnswerLanguageBadge({
           data-answer-lang={answerLang}
           className={`flex flex-1 items-center justify-center gap-2 rounded-3xl px-4 py-4 text-center text-2xl font-bold ${tone}`}
         >
-          <span aria-hidden="true">{mark}</span>
+          <span aria-hidden="true" draggable={false}>
+            {mark}
+          </span>
           <span>{label}</span>
-          <span aria-hidden="true">{flag[answerLang]}</span>
+          <span aria-hidden="true" draggable={false}>
+            {flag[answerLang]}
+          </span>
         </p>
         <button
           type="button"

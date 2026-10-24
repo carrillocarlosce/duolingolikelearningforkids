@@ -40,7 +40,9 @@ export function PictureWord({
         <SentenceSceneView scene={exercise.scene} />
       ) : (
         <div className="mx-auto grid size-40 place-items-center rounded-[2rem] bg-white text-7xl shadow-[0_4px_0_#e4e4e4]">
-          <span aria-hidden="true">{item.emoji}</span>
+          <span aria-hidden="true" draggable={false}>
+            {item.emoji}
+          </span>
         </div>
       )}
       {!themed && exercise.showPromptWord ? (
@@ -99,7 +101,9 @@ export function WordPicture({
                 selected === id ? "border-sky" : "border-transparent",
               ].join(" ")}
             >
-              <span aria-hidden="true">{item.emoji}</span>
+              <span aria-hidden="true" draggable={false}>
+                {item.emoji}
+              </span>
               <span className="sr-only">{item.en}</span>
             </button>
           );
@@ -170,7 +174,7 @@ export function MatchPairs({
                 picked === side.pairId ? "border-sky" : "border-transparent",
               ].join(" ")}
             >
-              <span className="text-3xl" aria-hidden="true">
+              <span className="text-3xl" aria-hidden="true" draggable={false}>
                 {side.emoji ?? ""}
               </span>
               {side.text ? <span className="mt-1 block">{side.text}</span> : null}
@@ -415,7 +419,11 @@ export function TypeAnswer({
     <div className="flex flex-col gap-4">
       <h2 className="text-center text-2xl font-bold">{sentence ? instruction : t.typeWord}</h2>
       {exercise.scene ? <SentenceSceneView scene={exercise.scene} /> : null}
-      {exercise.emoji ? <p className="text-center text-6xl">{exercise.emoji}</p> : null}
+      {exercise.emoji ? (
+        <p className="text-center text-6xl" draggable={false}>
+          {exercise.emoji}
+        </p>
+      ) : null}
       {showSource && exercise.sourceText && exercise.sourceLang ? (
         <p lang={exercise.sourceLang} className="rounded-2xl bg-white px-4 py-3 text-center text-2xl font-bold">
           “{exercise.sourceText}”

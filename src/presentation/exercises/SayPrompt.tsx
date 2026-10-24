@@ -69,7 +69,7 @@ export function SayPrompt({
       </h2>
       {exercise.scene ? <SentenceSceneView scene={exercise.scene} /> : null}
       {exercise.emoji ? (
-        <p className="text-7xl" aria-hidden="true">
+        <p className="text-7xl" aria-hidden="true" draggable={false}>
           {exercise.emoji}
         </p>
       ) : null}

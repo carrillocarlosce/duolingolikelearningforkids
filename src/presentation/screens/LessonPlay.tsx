@@ -173,7 +173,7 @@ export function LessonPlay({
     return (
       <div className="grid min-h-dvh place-items-center px-6 text-center">
         <div>
-          <p className="text-5xl" aria-label={`${summary.stars} stars`}>
+          <p className="text-5xl" aria-label={`${summary.stars} stars`} draggable={false}>
             {"⭐".repeat(summary.stars)}
           </p>
           <h1 className="mt-4 text-4xl font-bold">{t.doneTitle}</h1>
@@ -199,7 +199,9 @@ export function LessonPlay({
     return (
       <div className="grid min-h-dvh place-items-center px-6 text-center">
         <div>
-          <p className="text-5xl">💛</p>
+          <p className="text-5xl" draggable={false}>
+            💛
+          </p>
           <h1 className="mt-4 text-3xl font-bold">{t.outOfHearts}</h1>
           <button
             type="button"

@@ -30,7 +30,7 @@ export function LessonReader({ lesson, t, saving, actionLabel, speech, onBack, o
       <header className="mt-4 rounded-[2rem] bg-white px-5 py-5">
         <p className="text-sm font-bold uppercase tracking-wide text-sky">{t.readHeading}</p>
         <div className="mt-2 flex items-center gap-4">
-          <span className="text-5xl" aria-hidden="true">
+          <span className="text-5xl" aria-hidden="true" draggable={false}>
             {lesson.emoji}
           </span>
           <div>
@@ -43,7 +43,7 @@ export function LessonReader({ lesson, t, saving, actionLabel, speech, onBack, o
       <ul className="mt-4 flex flex-col gap-3">
         {cards.map((card) => (
           <li key={card.id} className="flex items-center gap-4 rounded-[1.5rem] bg-white px-4 py-4 shadow-[0_4px_0_#e4e4e4]">
-            <span className="text-5xl" aria-hidden="true">
+            <span className="text-5xl" aria-hidden="true" draggable={false}>
               {card.emoji}
             </span>
             <div className="min-w-0 flex-1">
