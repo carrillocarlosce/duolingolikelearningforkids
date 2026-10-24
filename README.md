@@ -49,11 +49,19 @@ After that, every push to `main` runs [`.github/workflows/pages.yml`](.github/wo
 
 The first deploy can take a minute. If the site 404s immediately, wait until the Actions run is green and refresh.
 
-`basePath` and `assetPrefix` are both `/duolingolikelearningforkids`, so pages, Next.js chunks, the web manifest `start_url` / `scope`, and icon URLs all sit under that path. `public/.nojekyll` is copied into the export so GitHub Pages does not run Jekyll on the files.
+`basePath` and `assetPrefix` are both `/duolingolikelearningforkids`, so pages, Next.js chunks, the web manifest `start_url` / `scope`, icon URLs, and the service worker all sit under that path. `public/.nojekyll` is copied into the export so GitHub Pages does not run Jekyll on the files. The build writes `out/sw.js` after the static export. Its precache list uses the same `/duolingolikelearningforkids` prefix, including both `/duolingolikelearningforkids/` and `index.html`.
 
 ## Install on a tablet
 
-A home-screen icon and full offline caching arrive with the service worker. Until then, the child can open the Pages URL in Chrome on the Android tablet. After the service worker ships, Chrome’s “Install app” / “Add to Home screen” uses the manifest in this project.
+Use Chrome on the Android tablet.
+
+1. Open the Pages URL once while the tablet is online and let the page finish loading. That visit installs the service worker and caches the app.
+2. In Chrome’s menu, choose **Install app** or **Add to Home screen**.
+3. Open Pipo’s Market from the new icon.
+
+After that first online visit, the lesson map and exercises open with the network off. Turn on airplane mode and open the icon again to check. If the first visit was interrupted, open the site online one more time, then try offline.
+
+Progress, XP, hearts, and finished lessons stay in IndexedDB on the tablet. Nothing is uploaded. The cache holds the pages, scripts, styles, font, icons, and manifest. A newer deploy replaces the cache the next time the tablet is online. Text-to-speech uses a voice already installed on the device, so it does not download audio. Speech recognition is not in this version; the lessons do not need it.
 
 ## Architecture
 
@@ -69,8 +77,8 @@ src/infrastructure adapters that implement the ports
 
 - **Domain** holds the Unit 7 words and sentences, answer checking (accents, alternates such as torta/queque and fideos/pasta, small typos), hearts, XP, streaks, and the lesson session rules.
 - **Application** builds the map (`getLessonPath`), loads the saved profile, and records a finished lesson. It talks to storage only through `ProgressRepository`. `SpeechSynthPort` and `SpeechRecognitionPort` are ready for the speech adapters.
-- **Infrastructure** saves progress in IndexedDB with the `idb` package. If the tablet cannot open a database, an in-memory repository is used for that visit and the screen says so. Speech adapters still report “not available”.
-- **Presentation** renders the map and the reading cards. It receives services from the composition root.
+- **Infrastructure** saves progress in IndexedDB with the `idb` package. If the tablet cannot open a database, an in-memory repository is used for that visit and the screen says so. Spoken words use the device `speechSynthesis` voices. The recognition adapter still reports “not available”.
+- **Presentation** renders the map, the reading cards, and the practice round. A production build registers the service worker. Dev server visits do not. It receives services from the composition root.
 
 Progress, XP, hearts, the streak, UI language, and finished lessons stay in a database named `pipos-market` on the device. Nothing is sent to a server. A new calendar day refills hearts. Finishing a lesson on the next day continues the streak; skipping a day starts it again at one. The heart meter and streak are saved now and shown on screen in a later update.
 
@@ -81,7 +89,7 @@ Progress, XP, hearts, the streak, UI language, and finished lessons stay in a da
 | Script | What it does |
 | --- | --- |
 | `npm run dev` | Next.js dev server |
-| `npm run build` | Static export into `out/` |
+| `npm run build` | Static export into `out/`, then the service worker |
 | `npm run preview` | Serves `out/` on the GitHub Pages base path |
 | `npm test` | Unit tests (Vitest) |
 | `npm run lint` | ESLint |
