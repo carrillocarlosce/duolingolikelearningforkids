@@ -61,6 +61,65 @@ describe("lesson session", () => {
     expect(continueSession(failed, 3).outcome).toBe("failed");
   });
 
+  it("spends a heart on a wrong missing word, odd one out, picture listen, or seller line", () => {
+    const fill: Exercise = {
+      id: "f",
+      type: "fill",
+      sentenceId: "dont-like-cake",
+      itemId: "cake",
+      choiceIds: ["cake", "milk"],
+      answerLang: "en",
+      clozeText: "I don't like ___",
+      speakText: "I don't like cake",
+      scene: { mascot: "like", emojis: [] },
+    };
+    const missed = submitAnswer(startSession("pattern-like", 5), fill, { type: "choice", choiceId: "milk" });
+    expect(missed.hearts).toBe(4);
+    expect(missed.lastGrade?.canonical).toBe("I don't like cake");
+    expect(submitAnswer(startSession("pattern-like", 5), fill, { type: "choice", choiceId: "cake" }).hearts).toBe(5);
+
+    const odd: Exercise = {
+      id: "o",
+      type: "odd",
+      itemId: "milk",
+      choiceIds: ["cake", "cookies", "milk"],
+      answerLang: "en",
+      promptText: "Which one is not a sweet?",
+      answerText: "milk",
+    };
+    const missedOdd = submitAnswer(startSession("sweet-treats", 5), odd, { type: "choice", choiceId: "cake" });
+    expect(missedOdd.hearts).toBe(4);
+    expect(missedOdd.lastGrade?.canonical).toBe("milk");
+
+    const heard: Exercise = {
+      id: "l",
+      type: "listen-only",
+      itemId: "cake",
+      choiceIds: ["cake", "milk"],
+      audioLang: "en",
+      audioText: "cake",
+    };
+    const heardMiss = submitAnswer(startSession("sweet-listen", 5), heard, { type: "choice", choiceId: "milk" });
+    expect(heardMiss.hearts).toBe(4);
+    expect(heardMiss.lastGrade?.canonical).toBe("cake");
+
+    const sold: Exercise = {
+      id: "r",
+      type: "roleplay",
+      answerId: "have-milk",
+      choiceIds: ["have-milk", "like-apples"],
+      promptLang: "en",
+      promptText: "What would you like?",
+      replyText: "Here you go!",
+      speakText: "Can I have milk, please?",
+      scene: { mascot: "shop", emojis: ["🥛"] },
+    };
+    const order = submitAnswer(startSession("pattern-please", 5), sold, { type: "choice", choiceId: "have-milk" });
+    expect(order.lastGrade?.status).toBe("correct");
+    expect(order.hearts).toBe(5);
+    expect(submitAnswer(startSession("pattern-please", 5), sold, { type: "choice", choiceId: "like-apples" }).hearts).toBe(4);
+  });
+
   it("does not spend hearts on matching or tracing mistakes", () => {
     const match: Exercise = {
       id: "m",

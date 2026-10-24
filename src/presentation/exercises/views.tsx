@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { SpeechSynthPort } from "@/application/ports";
+import { getSentence } from "@/domain/content/sentences";
 import { getVocab } from "@/domain/content/vocabulary";
 import type { Exercise } from "@/domain/exercises";
 import { SPEECH_RATE_NORMAL, SPEECH_RATE_SLOW } from "@/domain/speech";
@@ -467,6 +468,277 @@ export function TypeAnswer({
         }}
         className="w-full rounded-2xl border-4 border-white bg-white px-4 py-4 text-2xl font-bold outline-none focus:border-sky"
       />
+    </div>
+  );
+}
+
+export function FillBlank({
+  exercise,
+  t,
+  speech,
+  selected,
+  disabled,
+  onSelect,
+}: {
+  exercise: Extract<Exercise, { type: "fill" }>;
+  t: Copy;
+  speech: SpeechSynthPort;
+  selected: string | null;
+  disabled: boolean;
+  onSelect: (id: string) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-3">
+        <h2 lang={exercise.answerLang} className="flex-1 text-center text-2xl font-bold">
+          {exercise.clozeText}
+        </h2>
+        <button
+          type="button"
+          lang={exercise.answerLang}
+          aria-label={t.hearSentence}
+          onClick={() => speech.speak(exercise.speakText, exercise.answerLang, SPEECH_RATE_NORMAL)}
+          className="grid size-16 shrink-0 place-items-center rounded-full bg-sky text-3xl text-white shadow-[0_4px_0_#1899d6]"
+        >
+          <span aria-hidden="true">🔊</span>
+        </button>
+      </div>
+      <SentenceSceneView scene={exercise.scene} />
+      <div className="grid gap-3">
+        {exercise.choiceIds.map((id) => (
+          <button
+            key={id}
+            type="button"
+            lang={exercise.answerLang}
+            disabled={disabled}
+            aria-pressed={selected === id}
+            onClick={() => onSelect(id)}
+            className={choiceClass(selected === id)}
+          >
+            {getVocab(id)[exercise.answerLang]}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function OddOneOut({
+  exercise,
+  t,
+  speech,
+  selected,
+  disabled,
+  onSelect,
+}: {
+  exercise: Extract<Exercise, { type: "odd" }>;
+  t: Copy;
+  speech: SpeechSynthPort;
+  selected: string | null;
+  disabled: boolean;
+  onSelect: (id: string) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-3">
+        <h2 lang={exercise.answerLang} className="flex-1 text-center text-2xl font-bold">
+          {exercise.promptText}
+        </h2>
+        <button
+          type="button"
+          lang={exercise.answerLang}
+          aria-label={t.listen}
+          onClick={() => speech.speak(exercise.promptText, exercise.answerLang, SPEECH_RATE_NORMAL)}
+          className="grid size-16 shrink-0 place-items-center rounded-full bg-sky text-3xl text-white shadow-[0_4px_0_#1899d6]"
+        >
+          <span aria-hidden="true">🔊</span>
+        </button>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        {exercise.choiceIds.map((id) => {
+          const item = getVocab(id);
+          return (
+            <button
+              key={id}
+              type="button"
+              disabled={disabled}
+              aria-pressed={selected === id}
+              onClick={() => onSelect(id)}
+              className={[
+                "grid place-items-center gap-1 rounded-[1.75rem] border-4 bg-white px-3 py-4",
+                "shadow-[0_4px_0_#e4e4e4] active:translate-y-1 active:shadow-none",
+                selected === id ? "border-sky" : "border-transparent",
+              ].join(" ")}
+            >
+              <span aria-hidden="true" draggable={false} className="text-5xl">
+                {item.emoji}
+              </span>
+              <span lang={exercise.answerLang} className="text-center text-lg font-bold">
+                {item[exercise.answerLang]}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function ListenOnly({
+  exercise,
+  t,
+  speech,
+  selected,
+  disabled,
+  onSelect,
+}: {
+  exercise: Extract<Exercise, { type: "listen-only" }>;
+  t: Copy;
+  speech: SpeechSynthPort;
+  selected: string | null;
+  disabled: boolean;
+  onSelect: (id: string) => void;
+}) {
+  const [slow, setSlow] = useState(false);
+  const [settled, setSettled] = useState(() => {
+    if (typeof window === "undefined" || !window.speechSynthesis) return true;
+    return window.speechSynthesis.getVoices().length > 0;
+  });
+  const rate = slow ? SPEECH_RATE_SLOW : SPEECH_RATE_NORMAL;
+  const missing = settled && !speech.hasVoice(exercise.audioLang);
+
+  useEffect(() => {
+    const synth = window.speechSynthesis;
+    if (!synth) return;
+    const mark = () => {
+      if (synth.getVoices().length > 0) setSettled(true);
+    };
+    synth.addEventListener("voiceschanged", mark);
+    const timer = window.setTimeout(() => setSettled(true), 700);
+    return () => {
+      synth.removeEventListener("voiceschanged", mark);
+      window.clearTimeout(timer);
+    };
+  }, []);
+
+  useEffect(() => {
+    speech.speak(exercise.audioText, exercise.audioLang, SPEECH_RATE_NORMAL);
+    return () => speech.stop();
+  }, [exercise.audioLang, exercise.audioText, exercise.id, speech]);
+
+  return (
+    <div className="flex flex-col gap-4">
+      <h2 className="text-center text-2xl font-bold">{t.hearWord}</h2>
+      <div className="flex justify-center gap-3">
+        <button
+          type="button"
+          onClick={() => speech.speak(exercise.audioText, exercise.audioLang, rate)}
+          className="grid size-24 place-items-center rounded-full bg-sky text-4xl text-white shadow-[0_4px_0_#1899d6]"
+          aria-label={t.listen}
+        >
+          🔊
+        </button>
+        <button
+          type="button"
+          aria-pressed={slow}
+          aria-label={t.slow}
+          onClick={() => {
+            setSlow((value) => !value);
+            speech.speak(exercise.audioText, exercise.audioLang, slow ? SPEECH_RATE_NORMAL : SPEECH_RATE_SLOW);
+          }}
+          className="grid size-24 place-items-center rounded-full bg-white text-4xl shadow-[0_4px_0_#e4e4e4]"
+        >
+          🐢
+        </button>
+      </div>
+      {missing ? (
+        <p className="rounded-2xl bg-cream px-4 py-3 text-center text-xl font-bold">{t.noVoice} {exercise.audioText}</p>
+      ) : null}
+      <div className="grid grid-cols-2 gap-3">
+        {exercise.choiceIds.map((id) => {
+          const item = getVocab(id);
+          return (
+            <button
+              key={id}
+              type="button"
+              disabled={disabled}
+              aria-pressed={selected === id}
+              onClick={() => onSelect(id)}
+              className={[
+                "grid aspect-square place-items-center rounded-[1.75rem] border-4 bg-white text-6xl",
+                "shadow-[0_4px_0_#e4e4e4] active:translate-y-1 active:shadow-none",
+                selected === id ? "border-sky" : "border-transparent",
+              ].join(" ")}
+            >
+              <span aria-hidden="true" draggable={false}>
+                {item.emoji}
+              </span>
+              <span className="sr-only">{item[exercise.audioLang]}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function SellerRoleplay({
+  exercise,
+  t,
+  speech,
+  selected,
+  disabled,
+  onSelect,
+}: {
+  exercise: Extract<Exercise, { type: "roleplay" }>;
+  t: Copy;
+  speech: SpeechSynthPort;
+  selected: string | null;
+  disabled: boolean;
+  onSelect: (id: string) => void;
+}) {
+  useEffect(() => {
+    speech.speak(exercise.promptText, exercise.promptLang, SPEECH_RATE_NORMAL);
+    return () => speech.stop();
+  }, [exercise.id, exercise.promptLang, exercise.promptText, speech]);
+
+  return (
+    <div className="flex flex-col gap-4">
+      <SentenceSceneView scene={exercise.scene} />
+      <div className="flex items-center gap-3">
+        <h2 lang={exercise.promptLang} className="flex-1 text-center text-2xl font-bold">
+          {exercise.promptText}
+        </h2>
+        <button
+          type="button"
+          lang={exercise.promptLang}
+          aria-label={t.listen}
+          onClick={() => speech.speak(exercise.promptText, exercise.promptLang, SPEECH_RATE_NORMAL)}
+          className="grid size-16 shrink-0 place-items-center rounded-full bg-sky text-3xl text-white shadow-[0_4px_0_#1899d6]"
+        >
+          <span aria-hidden="true">🔊</span>
+        </button>
+      </div>
+      <div className="grid gap-3">
+        {exercise.choiceIds.map((id) => (
+          <button
+            key={id}
+            type="button"
+            lang={exercise.promptLang}
+            disabled={disabled}
+            aria-pressed={selected === id}
+            onClick={() => onSelect(id)}
+            className={choiceClass(selected === id)}
+          >
+            {getSentence(id)[exercise.promptLang]}
+          </button>
+        ))}
+      </div>
+      {disabled ? (
+        <p lang={exercise.promptLang} className="text-center text-2xl font-bold">
+          {exercise.replyText}
+        </p>
+      ) : null}
     </div>
   );
 }

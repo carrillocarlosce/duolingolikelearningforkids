@@ -48,6 +48,26 @@ export function gradeExercise(exercise: Exercise, answer: Answer): Grade {
       return answer.choiceId === exercise.itemId
         ? { status: "correct", canonical: exercise.answerText }
         : { status: "incorrect", canonical: exercise.answerText };
+    case "fill":
+      if (answer.type !== "choice") return { status: "incorrect", canonical: exercise.speakText };
+      return answer.choiceId === exercise.itemId
+        ? { status: "correct", canonical: exercise.speakText }
+        : { status: "incorrect", canonical: exercise.speakText };
+    case "listen-only":
+      if (answer.type !== "choice") return { status: "incorrect", canonical: exercise.audioText };
+      return answer.choiceId === exercise.itemId
+        ? { status: "correct", canonical: exercise.audioText }
+        : { status: "incorrect", canonical: exercise.audioText };
+    case "odd":
+      if (answer.type !== "choice") return { status: "incorrect", canonical: exercise.answerText };
+      return answer.choiceId === exercise.itemId
+        ? { status: "correct", canonical: exercise.answerText }
+        : { status: "incorrect", canonical: exercise.answerText };
+    case "roleplay":
+      if (answer.type !== "choice") return { status: "incorrect", canonical: exercise.speakText };
+      return answer.choiceId === exercise.answerId
+        ? { status: "correct", canonical: exercise.speakText }
+        : { status: "incorrect", canonical: exercise.speakText };
     case "word-picture":
       if (answer.type !== "choice") return { status: "incorrect", canonical: exercise.promptText };
       return answer.choiceId === exercise.itemId

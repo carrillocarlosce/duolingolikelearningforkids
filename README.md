@@ -116,6 +116,8 @@ Sentence patterns on the path, in English and Spanish, with word tiles and a sce
 - How much is …?
 - Do you want …?
 
+Matching pairs are already in the lessons: English with Spanish, or a picture with the word. A round can also ask for the missing word, the food that does not belong, or a picture after the word is spoken with no written choices. When the sentence is an order or a shop line, Pipo is the seller and the child picks what to say.
+
 ## Scripts
 
 | Script | What it does |
