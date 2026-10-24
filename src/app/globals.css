@@ -20,17 +20,44 @@ body {
   min-height: 100%;
 }
 
+html {
+  /* Pan and pinch stay. Double-tap zoom does not, so a tap cannot select a word. */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
   font-family: var(--font-sans);
   color: var(--color-ink);
   background:
     radial-gradient(circle at 12% -8%, #ffffff 0, transparent 36%),
     linear-gradient(180deg, #c8efff 0%, #fff6e8 42%, #e5f8cc 100%);
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
-button,
-a {
+body * {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+input,
+textarea,
+[contenteditable="true"],
+[contenteditable=""] {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+
+img,
+svg {
+  -webkit-user-drag: none;
 }
 
 .btn-3d {

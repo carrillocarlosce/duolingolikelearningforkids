@@ -7,9 +7,13 @@ export function SentenceSceneView({ scene }: { scene: SentenceScene }) {
   return (
     <div className="flex items-center justify-center gap-2" aria-hidden="true">
       {scene.mascot ? <PipoMark className="size-20" /> : null}
-      {cue ? <span className="text-5xl">{cue}</span> : null}
+      {cue ? (
+        <span className="text-5xl" draggable={false}>
+          {cue}
+        </span>
+      ) : null}
       {scene.emojis.map((emoji, index) => (
-        <span key={`${emoji}-${index}`} className="text-5xl">
+        <span key={`${emoji}-${index}`} className="text-5xl" draggable={false}>
           {emoji}
         </span>
       ))}

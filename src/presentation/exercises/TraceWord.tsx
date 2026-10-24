@@ -276,7 +276,7 @@ export function TraceWord({
   return (
     <div className="flex flex-col items-center gap-3" lang={exercise.answerLang === "es" ? "es-PE" : "en"}>
       <h2 className="text-center text-2xl font-bold">{t.trace}</h2>
-      <p className="text-5xl" aria-hidden="true">
+      <p className="text-5xl" aria-hidden="true" draggable={false}>
         {exercise.emoji}
       </p>
       <p
