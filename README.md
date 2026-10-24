@@ -8,6 +8,8 @@ Open a lesson, read the words, then practice: tap the word for a picture, tap th
 
 The map also opens the restaurant, which is always available. James's mom needs a name and a healthy menu. The child taps one Unit 7 food for the name ("My restaurant is called Apple" / "Mi restaurante se llama Manzana") and three foods for the menu. The name and the menu stay on screen in English and in Spanish, each with a language badge and a speaker that uses the tablet's own voice. A healthy menu needs at least two healthy foods (fruit, milk, salad, chicken, and the other foods marked healthy) and at most one treat (cake, ice cream, cookies, hamburger, or hot dog). Juice, pizza, pasta, and a sandwich can be on the menu, but they do not count as a healthy food. A menu that is too short or too full of treats gets another try and does not spend a heart. The name and menu are saved in IndexedDB on the tablet.
 
+The map also opens **Practice with Pipo**. That daily round uses words and sentences the child got wrong, plus ones they have not seen yet or have not practiced for a few days. A miss comes back the same day. A correct answer waits one day, then three, then a week. The schedule stays in IndexedDB on the tablet. The round is not one of the path lessons, so it does not lock or unlock the map. Finishing it still fills the hearts and can continue the streak.
+
 ## Run it locally
 
 You need Node.js 22.

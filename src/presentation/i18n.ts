@@ -102,6 +102,12 @@ export const copy = {
     restaurantHear: "Escuchar",
     restaurantCount: "comidas elegidas",
     restaurantSaved: "Quedó guardado en esta tablet.",
+    practiceWithPipo: "Practica con Pipo",
+    practiceDue: "Palabras para hoy",
+    practiceLater: "Vuelve mañana",
+    practiceEmptyTitle: "Pipo descansa",
+    practiceEmpty: "Hoy no hay palabras pendientes. Vuelve mañana.",
+    practiceSaved: "¡Listo! Pipo guardó lo que practicaste.",
   },
   en: {
     unitLabel: "Unit 7",
@@ -204,6 +210,12 @@ export const copy = {
     restaurantHear: "Listen",
     restaurantCount: "foods picked",
     restaurantSaved: "Saved on this tablet.",
+    practiceWithPipo: "Practice with Pipo",
+    practiceDue: "Words for today",
+    practiceLater: "Come back tomorrow",
+    practiceEmptyTitle: "Pipo is resting",
+    practiceEmpty: "Nothing is waiting today. Come back tomorrow.",
+    practiceSaved: "Done! Pipo saved what you practiced.",
   },
 } as const satisfies Record<Lang, Record<string, string>>;
 

@@ -5,6 +5,7 @@ import type { SoundEffectsPort, SpeechRecognitionPort, SpeechSynthPort } from "@
 import type { Answer } from "@/domain/exercises";
 import type { LessonPathItem } from "@/application/get-lesson-path";
 import { buildLessonExercises, mulberry32 } from "@/domain/build-lesson";
+import type { PracticeCard } from "@/domain/content/practice-cards";
 import { answerLanguage, type Exercise, type GradeStatus } from "@/domain/exercises";
 import type { Direction, Lang } from "@/domain/language";
 import { SPEECH_RATE_NORMAL } from "@/domain/speech";
@@ -54,6 +55,10 @@ type LessonPlayProps = {
   onExit: () => void;
   onHearts: (hearts: number) => void;
   onFinished: (summary: { xp: number; stars: 1 | 2 | 3 }) => void;
+  /** Daily review builds the round outside the lesson catalog. */
+  prepared?: readonly Exercise[];
+  cards?: readonly PracticeCard[];
+  onGraded?: (exercise: Exercise, status: GradeStatus) => void;
 };
 
 export function LessonPlay({
@@ -70,6 +75,9 @@ export function LessonPlay({
   onExit,
   onHearts,
   onFinished,
+  prepared,
+  cards,
+  onGraded,
 }: LessonPlayProps) {
   const [seed] = useState(() => Math.floor(Math.random() * 1_000_000_000));
   const [useTracing] = useState(letterTracing);
@@ -77,9 +85,11 @@ export function LessonPlay({
     () => recognition.supported && (typeof navigator === "undefined" || navigator.onLine),
   );
   const exercises = useMemo(() => {
-    const built = buildLessonExercises(lesson.id, direction, mulberry32(seed), { letterTracing: useTracing });
+    const built = prepared
+      ? [...prepared]
+      : buildLessonExercises(lesson.id, direction, mulberry32(seed), { letterTracing: useTracing });
     return canSay ? built : built.filter((exercise) => exercise.type !== "say");
-  }, [canSay, direction, lesson.id, seed, useTracing]);
+  }, [canSay, direction, lesson.id, prepared, seed, useTracing]);
   const [phase, setPhase] = useState<"intro" | "play" | "done" | "failed">("intro");
   const [session, setSession] = useState<SessionState>(() => startSession(lesson.id, hearts));
   const [draft, setDraft] = useState<Answer | null>(null);
@@ -117,6 +127,7 @@ export function LessonPlay({
         t={t}
         saving={false}
         actionLabel={t.start}
+        cards={cards}
         speech={speech}
         onBack={() => {
           sound.play("button");
@@ -153,6 +164,7 @@ export function LessonPlay({
   function scoreAnswer(answer: Answer) {
     if (!exercise || session.phase !== "question") return;
     const next = submitAnswer(session, exercise, answer);
+    if (next !== session && next.lastGrade) onGraded?.(exercise, next.lastGrade.status);
     setSession(next);
     if (next.hearts !== session.hearts) onHearts(next.hearts);
     reactTo(next);
