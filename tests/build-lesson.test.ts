@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { buildLessonExercises, mulberry32 } from "@/domain/build-lesson";
 import { getVocab } from "@/domain/content/vocabulary";
-import { answerLanguage } from "@/domain/exercises";
+import { getSentence } from "@/domain/content/sentences";
+import { answerLanguage, sentenceSource } from "@/domain/exercises";
 import type { Direction, Lang } from "@/domain/language";
 import { lessonCatalog } from "@/domain/lesson-path";
 
@@ -143,5 +144,57 @@ describe("buildLessonExercises", () => {
     expect([...seen].sort()).toEqual(
       ["build", "listen", "match", "picture-word", "say", "trace", "type", "word-picture"].sort(),
     );
+  });
+
+  it("gives every sentence exercise a translation and spoken target", () => {
+    const themed = new Set(["like-apples", "like-milk", "want-pizza", "want-hamburger", "want-cookies"]);
+    for (const lesson of lessonCatalog) {
+      for (const direction of ["en-es", "es-en", "en", "es"] as const) {
+        const answer = answerFor(direction);
+        for (const exercise of buildLessonExercises(lesson.id, direction, mulberry32(9))) {
+          const source = sentenceSource(exercise);
+          if (!source) continue;
+          const sentence = getSentence(source.sentenceId);
+          expect(source.sourceLang).not.toBe(answer);
+          expect(source.sourceText).toBe(sentence[source.sourceLang]);
+          expect(source.sourceText).not.toBe(sentence[answer]);
+          expect(source.speakText).toBe(sentence[answer]);
+          expect(source.speakText.length).toBeGreaterThan(0);
+          expect(source.scene.emojis.length > 0 || source.scene.mascot).toBeTruthy();
+          if (sentence.imageIds.length === 1) {
+            expect(source.scene.mascot).toBeTruthy();
+          }
+          if (themed.has(sentence.id)) {
+            expect(source.scene.mascot === "like" || source.scene.mascot === "want").toBe(true);
+          }
+        }
+      }
+    }
+
+    const liked = buildLessonExercises("i-like", "en", mulberry32(2));
+    const said = liked[0];
+    if (said?.type !== "say") throw new Error("sentence lesson should open by saying the sentence");
+    expect(said.sentenceId).toBe("like-apples");
+    expect(said.promptText).toBe("I like apples");
+    expect(said.sourceText).toBe("Me gustan las manzanas");
+
+    const pictured = liked.find((exercise) => exercise.type === "picture-word");
+    if (pictured?.type !== "picture-word") throw new Error("missing themed picture");
+    expect(pictured.promptText).toBe("I like ___");
+    expect(pictured.scene?.mascot).toBe("like");
+    expect(pictured.scene?.emojis).toEqual([]);
+
+    const built = liked.find((exercise) => exercise.type === "build" && exercise.sentenceId === "like-apples");
+    if (built?.type !== "build") throw new Error("missing like-apples builder");
+    expect(built.sourceText).toBe("Me gustan las manzanas");
+    expect(built.speakText).toBe("I like apples");
+    expect(built.answerTokens).toEqual(["I", "like", "apples"]);
+    expect(built.showPromptText).toBe(true);
+    expect(built.scene).toEqual({ mascot: "like", emojis: ["🍎"] });
+
+    const heard = liked.find((exercise) => exercise.type === "listen" && exercise.sentenceId === "like-apples");
+    if (heard?.type !== "listen") throw new Error("missing sentence listen");
+    expect(heard.audioText).toBe("I like apples");
+    expect(heard.clozeText).toBe("I like ___");
   });
 });

@@ -5,6 +5,7 @@ import type { SpeechSynthPort } from "@/application/ports";
 import { getVocab } from "@/domain/content/vocabulary";
 import type { Exercise } from "@/domain/exercises";
 import { SPEECH_RATE_NORMAL, SPEECH_RATE_SLOW } from "@/domain/speech";
+import { SentenceSceneView } from "@/presentation/components/SentenceSceneView";
 import type { Copy } from "@/presentation/i18n";
 
 function choiceClass(selected: boolean): string {
@@ -29,14 +30,23 @@ export function PictureWord({
   onSelect: (id: string) => void;
 }) {
   const item = getVocab(exercise.itemId);
+  const themed = Boolean(exercise.scene);
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="text-center text-2xl font-bold">{t.whatIsThis}</h2>
-      <div className="mx-auto grid size-40 place-items-center rounded-[2rem] bg-white text-7xl shadow-[0_4px_0_#e4e4e4]">
-        <span aria-hidden="true">{item.emoji}</span>
-      </div>
-      {exercise.showPromptWord ? (
-        <p className="text-center text-3xl font-bold text-sky">{exercise.promptText}</p>
+      <h2 className="text-center text-2xl font-bold" lang={themed ? (exercise.promptLang ?? undefined) : undefined}>
+        {themed ? exercise.promptText : t.whatIsThis}
+      </h2>
+      {exercise.scene ? (
+        <SentenceSceneView scene={exercise.scene} />
+      ) : (
+        <div className="mx-auto grid size-40 place-items-center rounded-[2rem] bg-white text-7xl shadow-[0_4px_0_#e4e4e4]">
+          <span aria-hidden="true">{item.emoji}</span>
+        </div>
+      )}
+      {!themed && exercise.showPromptWord ? (
+        <p lang={exercise.promptLang ?? undefined} className="text-center text-3xl font-bold text-sky">
+          {exercise.promptText}
+        </p>
       ) : null}
       <div className="grid gap-3">
         {exercise.choiceIds.map((id) => (
@@ -194,14 +204,19 @@ export function BuildSentence({
   disabled,
   onDraft,
   onEffect,
+  speech,
 }: {
   exercise: Extract<Exercise, { type: "build" }>;
   t: Copy;
   disabled: boolean;
   onDraft: (tokens: string[] | null) => void;
   onEffect: (effect: "tap") => void;
+  speech: SpeechSynthPort;
 }) {
   const [used, setUsed] = useState<number[]>([]);
+  const instruction = exercise.answerLang === "en" ? t.buildInEnglish : t.buildInSpanish;
+  const wordCount = exercise.answerTokens.length;
+  const slotCount = Math.max(wordCount, used.length);
 
   function update(next: number[]) {
     onEffect("tap");
@@ -212,29 +227,56 @@ export function BuildSentence({
 
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="text-center text-2xl font-bold">{t.build}</h2>
-      {exercise.emoji ? <p className="text-center text-4xl">{exercise.emoji}</p> : null}
-      {exercise.showPromptText ? (
-        <p lang={exercise.promptLang} className="rounded-2xl bg-white px-4 py-3 text-center text-2xl font-bold">
-          {exercise.promptText}
+      <SentenceSceneView scene={exercise.scene} />
+      <h2 className="text-center text-2xl font-bold">{instruction}</h2>
+      <div className="flex items-center gap-3">
+        <p
+          lang={exercise.sourceLang}
+          className="flex-1 rounded-2xl bg-white px-4 py-3 text-center text-2xl font-bold"
+        >
+          “{exercise.sourceText}”
         </p>
-      ) : null}
+        <button
+          type="button"
+          lang={exercise.answerLang}
+          aria-label={t.hearSentence}
+          onClick={() => speech.speak(exercise.speakText, exercise.answerLang, SPEECH_RATE_NORMAL)}
+          className="grid size-16 shrink-0 place-items-center rounded-full bg-sky text-3xl text-white shadow-[0_4px_0_#1899d6]"
+        >
+          <span aria-hidden="true">🔊</span>
+        </button>
+      </div>
+      <p className="text-center text-lg font-bold text-ink/70">
+        {t.needWords} {wordCount} {wordCount === 1 ? t.oneWord : t.manyWords}
+      </p>
       <div
         lang={exercise.answerLang}
         className="min-h-24 rounded-3xl border-2 border-dashed border-sky/40 bg-white/70 p-3"
+        aria-label={`${wordCount} ${wordCount === 1 ? t.oneWord : t.manyWords}`}
       >
         <div className="flex flex-wrap gap-2">
-          {used.map((tileIndex, position) => (
-            <button
-              key={`${tileIndex}-${position}`}
-              type="button"
-              disabled={disabled}
-              onClick={() => update(used.filter((_, index) => index !== position))}
-              className="rounded-xl bg-sky px-3 py-2 text-xl font-bold text-white"
-            >
-              {exercise.tiles[tileIndex]}
-            </button>
-          ))}
+          {Array.from({ length: slotCount }, (_, position) => {
+            const tileIndex = used[position];
+            if (tileIndex === undefined) {
+              return (
+                <span
+                  key={`slot-${position}`}
+                  className="inline-block h-12 min-w-16 rounded-xl border-b-4 border-dashed border-sky/60"
+                />
+              );
+            }
+            return (
+              <button
+                key={`${tileIndex}-${position}`}
+                type="button"
+                disabled={disabled}
+                onClick={() => update(used.filter((_, index) => index !== position))}
+                className="rounded-xl bg-sky px-3 py-2 text-xl font-bold text-white"
+              >
+                {exercise.tiles[tileIndex]}
+              </button>
+            );
+          })}
         </div>
       </div>
       <div lang={exercise.answerLang} className="flex flex-wrap gap-2">
@@ -298,7 +340,13 @@ export function ListenPick({
 
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="text-center text-2xl font-bold">{t.hearWord}</h2>
+      <h2
+        className="text-center text-2xl font-bold"
+        lang={exercise.clozeText ? exercise.answerLang : undefined}
+      >
+        {exercise.clozeText ?? t.hearWord}
+      </h2>
+      {exercise.scene ? <SentenceSceneView scene={exercise.scene} /> : null}
       <div className="flex justify-center gap-3">
         <button
           type="button"
@@ -350,23 +398,46 @@ export function TypeAnswer({
   disabled,
   onDraft,
   onEnter,
+  speech,
 }: {
   exercise: Extract<Exercise, { type: "type" }>;
   t: Copy;
   disabled: boolean;
   onDraft: (text: string) => void;
   onEnter: () => void;
+  speech: SpeechSynthPort;
 }) {
   const [value, setValue] = useState("");
-  const sentence = exercise.accepted[0]?.includes(" ") ?? false;
+  const sentence = Boolean(exercise.sentenceId) || (exercise.accepted[0]?.includes(" ") ?? false);
+  const instruction = exercise.answerLang === "en" ? t.typeInEnglish : t.typeInSpanish;
+  const showSource = Boolean(exercise.sourceText && exercise.sourceText !== exercise.promptText);
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="text-center text-2xl font-bold">{sentence ? t.typeSentence : t.typeWord}</h2>
+      <h2 className="text-center text-2xl font-bold">{sentence ? instruction : t.typeWord}</h2>
+      {exercise.scene ? <SentenceSceneView scene={exercise.scene} /> : null}
       {exercise.emoji ? <p className="text-center text-6xl">{exercise.emoji}</p> : null}
-      {!exercise.hidePromptText && exercise.promptText ? (
-        <p lang={exercise.promptLang} className="rounded-2xl bg-white px-4 py-3 text-center text-2xl font-bold">
-          {exercise.promptText}
+      {showSource && exercise.sourceText && exercise.sourceLang ? (
+        <p lang={exercise.sourceLang} className="rounded-2xl bg-white px-4 py-3 text-center text-2xl font-bold">
+          “{exercise.sourceText}”
         </p>
+      ) : null}
+      {!exercise.hidePromptText && exercise.promptText ? (
+        <div className="flex items-center gap-3">
+          <p lang={exercise.promptLang} className="flex-1 rounded-2xl bg-white px-4 py-3 text-center text-2xl font-bold">
+            {exercise.promptText}
+          </p>
+          {sentence ? (
+            <button
+              type="button"
+              lang={exercise.answerLang}
+              aria-label={t.hearSentence}
+              onClick={() => speech.speak(exercise.speakText, exercise.answerLang, SPEECH_RATE_NORMAL)}
+              className="grid size-16 shrink-0 place-items-center rounded-full bg-sky text-3xl text-white shadow-[0_4px_0_#1899d6]"
+            >
+              <span aria-hidden="true">🔊</span>
+            </button>
+          ) : null}
+        </div>
       ) : null}
       <input
         value={value}
