@@ -192,7 +192,7 @@ export function LessonPlay({
       <div className="grid min-h-dvh place-items-center px-6 text-center">
         <div>
           <PipoMark className="mx-auto size-40" mood="cheer" />
-          <p className="mt-4 text-5xl" aria-label={`${summary.stars} stars`}>
+          <p className="mt-4 text-5xl" aria-label={`${summary.stars} stars`} draggable={false}>
             {"⭐".repeat(summary.stars)}
           </p>
           <h1 className="mt-4 text-4xl font-bold">{t.doneTitle}</h1>

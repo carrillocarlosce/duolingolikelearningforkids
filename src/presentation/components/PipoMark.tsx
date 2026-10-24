@@ -17,6 +17,7 @@ const motion: Record<PipoMood, string> = {
 export function PipoMark({ className, title = "Pipo", mood = "idle" }: PipoMarkProps) {
   const pleased = mood === "happy" || mood === "cheer";
   return (
+    <span draggable={false} className="contents">
     <svg
       viewBox="0 0 80 80"
       className={[className, motion[mood]].filter(Boolean).join(" ")}
@@ -48,5 +49,6 @@ export function PipoMark({ className, title = "Pipo", mood = "idle" }: PipoMarkP
         strokeLinecap="round"
       />
     </svg>
+    </span>
   );
 }
