@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { loadLearnerState } from "@/application/load-learner-state";
 import { recordLessonResult } from "@/application/record-lesson-result";
 import { MemoryProgressRepository } from "@/infrastructure/storage/memory-progress-repository";
-import { addDays, applyStreak, freshProfile, rollHearts } from "@/domain/progress";
+import { addDays, applyStreak, freshProfile, rollHearts, withHeartCount } from "@/domain/progress";
 import { MAX_HEARTS, canStartLesson, starsForMistakes, xpForStatus } from "@/domain/scoring";
 
 describe("scoring", () => {
@@ -19,6 +19,14 @@ describe("scoring", () => {
 });
 
 describe("hearts and streak", () => {
+  it("stores a heart loss inside the five-heart meter", () => {
+    const profile = freshProfile("2026-10-24");
+    expect(withHeartCount(profile, 4).hearts).toBe(4);
+    expect(withHeartCount(profile, 0).hearts).toBe(0);
+    expect(withHeartCount(profile, -3).hearts).toBe(0);
+    expect(withHeartCount(profile, 9).hearts).toBe(MAX_HEARTS);
+  });
+
   it("refills hearts on a new day and keeps them on the same day", () => {
     const monday = freshProfile("2026-10-19");
     const tired = { ...monday, hearts: 2, heartsDate: "2026-10-19" };

@@ -5,7 +5,7 @@ import type { SoundEffectsPort, SpeechRecognitionPort, SpeechSynthPort } from "@
 import type { Answer } from "@/domain/exercises";
 import type { LessonPathItem } from "@/application/get-lesson-path";
 import { buildLessonExercises, mulberry32 } from "@/domain/build-lesson";
-import { answerLanguage, type Exercise } from "@/domain/exercises";
+import { answerLanguage, type Exercise, type GradeStatus } from "@/domain/exercises";
 import type { Direction, Lang } from "@/domain/language";
 import { SPEECH_RATE_NORMAL } from "@/domain/speech";
 import { MAX_HEARTS } from "@/domain/scoring";
@@ -18,6 +18,7 @@ import {
 } from "@/domain/session";
 import type { Copy } from "@/presentation/i18n";
 import { AnswerLanguageBadge } from "@/presentation/components/AnswerLanguageBadge";
+import { PipoMark, type PipoMood } from "@/presentation/components/PipoMark";
 import { SayPrompt } from "@/presentation/exercises/SayPrompt";
 import { SpellWord } from "@/presentation/exercises/SpellWord";
 import { TraceWord } from "@/presentation/exercises/TraceWord";
@@ -31,17 +32,27 @@ import {
 } from "@/presentation/exercises/views";
 import { LessonReader } from "@/presentation/screens/LessonReader";
 
+function pipoFor(status: GradeStatus): PipoMood {
+  if (status === "incorrect") return "oops";
+  if (status === "skipped") return "idle";
+  return "happy";
+}
+
 type LessonPlayProps = {
   lesson: LessonPathItem;
   direction: Direction;
   uiLang: Lang;
   /** Captured when the lesson opens so a settings change cannot swap the exercise mid-round. */
   letterTracing: boolean;
+  /** Saved lives for today. A finished lesson fills the meter again. */
+  hearts: number;
+  streak: number;
   t: Copy;
   speech: SpeechSynthPort;
   recognition: SpeechRecognitionPort;
   sound: SoundEffectsPort;
   onExit: () => void;
+  onHearts: (hearts: number) => void;
   onFinished: (summary: { xp: number; stars: 1 | 2 | 3 }) => void;
 };
 
@@ -50,11 +61,14 @@ export function LessonPlay({
   direction,
   uiLang,
   letterTracing,
+  hearts,
+  streak,
   t,
   speech,
   recognition,
   sound,
   onExit,
+  onHearts,
   onFinished,
 }: LessonPlayProps) {
   const [seed] = useState(() => Math.floor(Math.random() * 1_000_000_000));
@@ -67,7 +81,7 @@ export function LessonPlay({
     return canSay ? built : built.filter((exercise) => exercise.type !== "say");
   }, [canSay, direction, lesson.id, seed, useTracing]);
   const [phase, setPhase] = useState<"intro" | "play" | "done" | "failed">("intro");
-  const [session, setSession] = useState<SessionState>(() => startSession(lesson.id, MAX_HEARTS));
+  const [session, setSession] = useState<SessionState>(() => startSession(lesson.id, hearts));
   const [draft, setDraft] = useState<Answer | null>(null);
   const [leaving, setLeaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -109,10 +123,13 @@ export function LessonPlay({
           onExit();
         }}
         onFinish={() => {
-          if (lesson.unlocked && exercises.length > 0) {
-            sound.play("button");
-            setPhase("play");
+          if (!lesson.unlocked || exercises.length === 0) return;
+          sound.play("button");
+          if (session.hearts <= 0) {
+            setPhase("failed");
+            return;
           }
+          setPhase("play");
         }}
       />
     );
@@ -137,6 +154,7 @@ export function LessonPlay({
     if (!exercise || session.phase !== "question") return;
     const next = submitAnswer(session, exercise, answer);
     setSession(next);
+    if (next.hearts !== session.hearts) onHearts(next.hearts);
     reactTo(next);
   }
 
@@ -173,12 +191,16 @@ export function LessonPlay({
     return (
       <div className="grid min-h-dvh place-items-center px-6 text-center">
         <div>
-          <p className="text-5xl" aria-label={`${summary.stars} stars`}>
+          <PipoMark className="mx-auto size-40" mood="cheer" />
+          <p className="mt-4 text-5xl" aria-label={`${summary.stars} stars`}>
             {"⭐".repeat(summary.stars)}
           </p>
           <h1 className="mt-4 text-4xl font-bold">{t.doneTitle}</h1>
           <p className="mt-3 text-3xl font-bold text-leaf-dark">
             +{shownXp} {t.xp}
+          </p>
+          <p className="mt-2 text-xl font-bold" aria-label={`${streak} ${streak === 1 ? t.streakOne : t.streakMany}`}>
+            <span aria-hidden="true">🔥 {streak}</span>
           </p>
           <button
             type="button"
@@ -199,13 +221,14 @@ export function LessonPlay({
     return (
       <div className="grid min-h-dvh place-items-center px-6 text-center">
         <div>
-          <p className="text-5xl">💛</p>
+          <PipoMark className="mx-auto size-36" mood="oops" />
           <h1 className="mt-4 text-3xl font-bold">{t.outOfHearts}</h1>
           <button
             type="button"
             onClick={() => {
               sound.play("button");
               combo.current = 0;
+              onHearts(MAX_HEARTS);
               setSession(startSession(lesson.id, MAX_HEARTS));
               setDraft(null);
               setPhase("play");
@@ -259,6 +282,9 @@ export function LessonPlay({
         <div className="h-4 flex-1 overflow-hidden rounded-full bg-white" aria-hidden="true">
           <div className="h-full rounded-full bg-leaf" style={{ width: `${progress}%` }} />
         </div>
+        <p className="text-sm font-bold text-leaf-dark" aria-label={`${session.xpEarned} ${t.xp}`}>
+          {session.xpEarned} {t.xp}
+        </p>
         <p className="text-xl" aria-label={`${session.hearts} ${t.hearts}`}>
           {"❤".repeat(session.hearts)}
           <span className="text-ink/30">{"❤".repeat(Math.max(0, MAX_HEARTS - session.hearts))}</span>
@@ -304,7 +330,9 @@ export function LessonPlay({
 
       {session.phase === "feedback" && grade ? (
         <div className={`fixed inset-x-0 bottom-0 z-20 px-4 pb-4 pt-5 ${banner}`}>
-          <div className="mx-auto w-full max-w-xl">
+          <div className="mx-auto flex w-full max-w-xl items-start gap-3">
+            <PipoMark className="size-16 shrink-0" mood={pipoFor(grade.status)} />
+            <div className="min-w-0 flex-1">
             <p className="text-2xl font-bold">
               {grade.status === "correct"
                 ? t.correct
@@ -344,6 +372,7 @@ export function LessonPlay({
             >
               {t.continue}
             </button>
+            </div>
           </div>
         </div>
       ) : (
