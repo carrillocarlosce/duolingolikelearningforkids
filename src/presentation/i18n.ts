@@ -45,6 +45,8 @@ export const copy = {
     slow: "Despacio",
     hearWord: "Escucha y toca",
     noVoice: "Esta tablet no tiene esa voz. La palabra es:",
+    trace: "Traza la letra",
+    traceHint: "Sigue la letra con el dedo",
   },
   en: {
     unitLabel: "Unit 7",
@@ -90,6 +92,8 @@ export const copy = {
     slow: "Slow",
     hearWord: "Listen and tap",
     noVoice: "This tablet has no voice for that language. The word is:",
+    trace: "Trace the letter",
+    traceHint: "Follow the letter with your finger",
   },
 } as const satisfies Record<Lang, Record<string, string>>;
 
