@@ -80,7 +80,7 @@ src/infrastructure adapters that implement the ports
 - **Infrastructure** saves progress in IndexedDB with the `idb` package. If the tablet cannot open a database, an in-memory repository is used for that visit and the screen says so. Spoken words use the device `speechSynthesis` voices. “Say it” uses `SpeechRecognition` when the browser has it.
 - **Presentation** renders the map, the reading cards, and the practice round. A production build registers the service worker. Dev server visits do not. It receives services from the composition root.
 
-Progress, XP, hearts, the streak, UI language, and finished lessons stay in a database named `pipos-market` on the device. Nothing is sent to a server. A new calendar day refills hearts. Finishing a lesson on the next day continues the streak; skipping a day starts it again at one. The heart meter and streak are saved now and shown on screen in a later update.
+Progress, XP, hearts, the streak, UI language, and finished lessons stay in a database named `pipos-market` on the device. Nothing is sent to a server. The lesson map shows the heart meter, the XP total, and the daily streak. A practice round spends those saved hearts. Finishing the lesson, or choosing to try again, fills the meter. A new calendar day fills it too. Finishing a lesson on the next day continues the streak; skipping a day starts it again at one. Pipo cheers for a right answer, shakes for a miss, and jumps when the lesson is done.
 
 `tests/architecture.test.ts` fails the build if those import rules are broken.
 

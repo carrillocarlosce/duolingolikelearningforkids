@@ -118,6 +118,38 @@ svg {
   animation: shake 0.35s linear;
 }
 
+@keyframes pipo-pop {
+  0% {
+    transform: scale(0.86);
+  }
+  45% {
+    transform: scale(1.12) rotate(-8deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.pipo-pop {
+  animation: pipo-pop 0.55s ease;
+  transform-origin: center;
+}
+
+@keyframes pipo-cheer {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-6deg);
+  }
+  50% {
+    transform: translateY(-12px) rotate(6deg);
+  }
+}
+
+.pipo-cheer {
+  animation: pipo-cheer 0.9s ease-in-out infinite;
+  transform-origin: center;
+}
+
 .trace-pad {
   touch-action: none;
   aspect-ratio: 1;
@@ -176,7 +208,9 @@ svg {
 
 @media (prefers-reduced-motion: reduce) {
   .bob,
-  .shake {
+  .shake,
+  .pipo-pop,
+  .pipo-cheer {
     animation: none;
   }
 }

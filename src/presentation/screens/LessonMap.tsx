@@ -12,6 +12,9 @@ type LessonMapProps = {
   t: Copy;
   direction: Direction;
   soundOn: boolean;
+  hearts: number;
+  xp: number;
+  streak: number;
   onDirection: (direction: Direction) => void;
   onSelect: (id: string) => void;
   onOpenSettings: () => void;
@@ -23,6 +26,9 @@ export function LessonMap({
   t,
   direction,
   soundOn,
+  hearts,
+  xp,
+  streak,
   onDirection,
   onSelect,
   onOpenSettings,
@@ -32,7 +38,7 @@ export function LessonMap({
     <div className="mx-auto flex min-h-dvh w-full max-w-xl flex-col px-4 pb-16 pt-6">
       <header className="rounded-[2rem] bg-white px-5 py-5 shadow-[0_8px_0_rgba(255,255,255,0.65)]">
         <div className="flex items-center gap-4">
-          <PipoMark className="size-20 shrink-0" />
+          <PipoMark className="size-20 shrink-0 bob" />
           <div className="min-w-0 flex-1">
             <p className="text-sm font-bold uppercase tracking-wide text-sky">{t.unitLabel}</p>
             <h1 className="text-3xl font-bold leading-tight text-ink">
@@ -63,6 +69,23 @@ export function LessonMap({
         <p className="mt-4 rounded-2xl bg-cream px-4 py-3 text-lg leading-snug text-ink">
           {t.challenge}
         </p>
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          <p
+            className="rounded-2xl bg-cream px-2 py-3 text-center text-lg font-bold"
+            aria-label={`${streak} ${streak === 1 ? t.streakOne : t.streakMany}`}
+          >
+            <span aria-hidden="true">🔥 {streak}</span>
+          </p>
+          <p className="rounded-2xl bg-cream px-2 py-3 text-center text-lg font-bold" aria-label={`${xp} ${t.xp}`}>
+            <span aria-hidden="true">⭐ {xp}</span>
+          </p>
+          <p
+            className="rounded-2xl bg-cream px-2 py-3 text-center text-lg font-bold"
+            aria-label={`${hearts} ${t.hearts}`}
+          >
+            <span aria-hidden="true">❤ {hearts}</span>
+          </p>
+        </div>
         <p className="mt-4 text-sm font-bold uppercase tracking-wide text-sky">{t.practiceHow}</p>
         <div className="mt-2 grid grid-cols-4 gap-2">
           {directions.map((option) => (
