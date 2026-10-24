@@ -6,19 +6,18 @@ import { loadLearnerState } from "@/application/load-learner-state";
 import type { AppServices } from "@/application/ports";
 import { recordLessonResult } from "@/application/record-lesson-result";
 import { createAppServices, todayIsoDate } from "@/composition/create-services";
+import type { Direction } from "@/domain/language";
 import { completedLessonIds, type Profile } from "@/domain/progress";
-import { XP_READ } from "@/domain/scoring";
 import { copy } from "@/presentation/i18n";
 import { PipoMark } from "@/presentation/components/PipoMark";
 import { LessonMap } from "@/presentation/screens/LessonMap";
-import { LessonReader } from "@/presentation/screens/LessonReader";
+import { LessonPlay } from "@/presentation/screens/LessonPlay";
 
 export function App() {
   const [services, setServices] = useState<AppServices | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [nodes, setNodes] = useState<LessonPathItem[]>([]);
   const [lessonId, setLessonId] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
@@ -61,25 +60,26 @@ export function App() {
 
   const selected = nodes.find((node) => node.id === lessonId) ?? null;
 
-  async function finishLesson(id: string) {
-    if (!services || saving) return;
-    setSaving(true);
-    try {
-      await recordLessonResult(services.progress, {
-        lessonId: id,
-        xpAwarded: XP_READ,
-        attemptXp: XP_READ,
-        stars: 1,
-        today: todayIsoDate(),
-      });
-      const loaded = await loadLearnerState(services.progress, todayIsoDate());
-      setProfile(loaded.profile);
-      setNodes(getLessonPath(completedLessonIds(loaded.progress)));
-      setLessonId(null);
-      setToast(copy[loaded.profile.uiLang].saved);
-    } finally {
-      setSaving(false);
-    }
+  async function finishLesson(id: string, summary: { xp: number; stars: 1 | 2 | 3 }) {
+    if (!services) return;
+    const result = await recordLessonResult(services.progress, {
+      lessonId: id,
+      xpAwarded: summary.xp,
+      attemptXp: summary.xp,
+      stars: summary.stars,
+      today: todayIsoDate(),
+    });
+    const progress = await services.progress.getLessonProgress();
+    setProfile(result.profile);
+    setNodes(getLessonPath(completedLessonIds(progress)));
+    setToast(copy[result.profile.uiLang].saved);
+  }
+
+  async function changeDirection(direction: Direction) {
+    if (!services || !profile) return;
+    const next = { ...profile, direction };
+    setProfile(next);
+    await services.progress.saveProfile(next);
   }
 
   return (
@@ -90,19 +90,25 @@ export function App() {
         </p>
       ) : null}
       {selected ? (
-        <LessonReader
+        <LessonPlay
           lesson={selected}
+          direction={profile.direction}
           t={t}
-          saving={saving}
-          onBack={() => setLessonId(null)}
-          onFinish={() => void finishLesson(selected.id)}
+          onExit={() => setLessonId(null)}
+          onFinished={(summary) => void finishLesson(selected.id, summary)}
         />
       ) : (
         <>
           {!services.persistent ? (
             <p className="mx-auto max-w-xl px-4 pt-4 text-center text-base font-semibold">{t.notSaved}</p>
           ) : null}
-          <LessonMap nodes={nodes} t={t} onSelect={setLessonId} />
+          <LessonMap
+            nodes={nodes}
+            t={t}
+            direction={profile.direction}
+            onDirection={(direction) => void changeDirection(direction)}
+            onSelect={setLessonId}
+          />
         </>
       )}
     </>

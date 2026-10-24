@@ -6,11 +6,12 @@ type LessonReaderProps = {
   lesson: LessonPathItem;
   t: Copy;
   saving: boolean;
+  actionLabel: string;
   onBack: () => void;
   onFinish: () => void;
 };
 
-export function LessonReader({ lesson, t, saving, onBack, onFinish }: LessonReaderProps) {
+export function LessonReader({ lesson, t, saving, actionLabel, onBack, onFinish }: LessonReaderProps) {
   const cards = practiceCards(lesson.id);
   const note = !lesson.unlocked ? t.lockedNote : lesson.completed ? t.doneNote : t.currentNote;
 
@@ -58,7 +59,7 @@ export function LessonReader({ lesson, t, saving, onBack, onFinish }: LessonRead
               onClick={onFinish}
               className="btn-3d btn-leaf w-full bg-leaf py-4 text-xl text-white disabled:opacity-70"
             >
-              {t.readDone}
+              {actionLabel}
             </button>
           </div>
         </div>

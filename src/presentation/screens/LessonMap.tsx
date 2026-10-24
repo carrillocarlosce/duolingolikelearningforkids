@@ -1,16 +1,21 @@
 import type { LessonPathItem } from "@/application/get-lesson-path";
+import type { Direction } from "@/domain/language";
 import type { Copy } from "@/presentation/i18n";
 import { PipoMark } from "@/presentation/components/PipoMark";
+
+const directions: Direction[] = ["en-es", "es-en", "en", "es"];
 
 const offsets = [-76, -24, 76, 28];
 
 type LessonMapProps = {
   nodes: LessonPathItem[];
   t: Copy;
+  direction: Direction;
+  onDirection: (direction: Direction) => void;
   onSelect: (id: string) => void;
 };
 
-export function LessonMap({ nodes, t, onSelect }: LessonMapProps) {
+export function LessonMap({ nodes, t, direction, onDirection, onSelect }: LessonMapProps) {
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-xl flex-col px-4 pb-16 pt-6">
       <header className="rounded-[2rem] bg-white px-5 py-5 shadow-[0_8px_0_rgba(255,255,255,0.65)]">
@@ -27,6 +32,23 @@ export function LessonMap({ nodes, t, onSelect }: LessonMapProps) {
         <p className="mt-4 rounded-2xl bg-cream px-4 py-3 text-lg leading-snug text-ink">
           {t.challenge}
         </p>
+        <p className="mt-4 text-sm font-bold uppercase tracking-wide text-sky">{t.practiceHow}</p>
+        <div className="mt-2 grid grid-cols-4 gap-2">
+          {directions.map((option) => (
+            <button
+              key={option}
+              type="button"
+              aria-pressed={direction === option}
+              onClick={() => onDirection(option)}
+              className={[
+                "rounded-2xl px-1 py-3 text-sm font-bold",
+                direction === option ? "bg-leaf text-white" : "bg-cream text-ink",
+              ].join(" ")}
+            >
+              {option === "en-es" ? "EN→ES" : option === "es-en" ? "ES→EN" : option.toUpperCase()}
+            </button>
+          ))}
+        </div>
         <p className="mt-3 text-center text-2xl" aria-hidden="true">
           🍎 🥛 🍕 🥗 🍦
         </p>
