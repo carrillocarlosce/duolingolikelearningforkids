@@ -25,10 +25,31 @@ export interface SpeechRecognitionPort {
   stop(): void;
 }
 
+/** Short procedural effects. Adapters must stay silent when sound is turned off. */
+export type SoundEffect =
+  | "tap"
+  | "select"
+  | "correct"
+  | "wrong"
+  | "sparkle"
+  | "heart"
+  | "fanfare"
+  | "xp"
+  | "unlock"
+  | "button";
+
+export interface SoundEffectsPort {
+  /** Resume audio inside a user gesture. Required on Android before any sound. */
+  unlock(): void;
+  play(effect: SoundEffect): void;
+  setEnabled(enabled: boolean): void;
+}
+
 export interface AppServices {
   progress: ProgressRepository;
   speech: SpeechSynthPort;
   recognition: SpeechRecognitionPort;
+  sound: SoundEffectsPort;
   /** False when IndexedDB could not be opened. Progress lasts for this visit only. */
   persistent: boolean;
 }

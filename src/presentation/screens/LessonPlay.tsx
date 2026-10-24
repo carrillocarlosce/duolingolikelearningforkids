@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
-import type { SpeechRecognitionPort, SpeechSynthPort } from "@/application/ports";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { SoundEffectsPort, SpeechRecognitionPort, SpeechSynthPort } from "@/application/ports";
+import type { Answer } from "@/domain/exercises";
 import type { LessonPathItem } from "@/application/get-lesson-path";
 import { buildLessonExercises, mulberry32 } from "@/domain/build-lesson";
-import type { Answer, Exercise } from "@/domain/exercises";
+import type { Exercise } from "@/domain/exercises";
 import type { Direction } from "@/domain/language";
 import { MAX_HEARTS } from "@/domain/scoring";
 import {
@@ -33,11 +34,21 @@ type LessonPlayProps = {
   t: Copy;
   speech: SpeechSynthPort;
   recognition: SpeechRecognitionPort;
+  sound: SoundEffectsPort;
   onExit: () => void;
   onFinished: (summary: { xp: number; stars: 1 | 2 | 3 }) => void;
 };
 
-export function LessonPlay({ lesson, direction, t, speech, recognition, onExit, onFinished }: LessonPlayProps) {
+export function LessonPlay({
+  lesson,
+  direction,
+  t,
+  speech,
+  recognition,
+  sound,
+  onExit,
+  onFinished,
+}: LessonPlayProps) {
   const [seed] = useState(() => Math.floor(Math.random() * 1_000_000_000));
   const [canSay] = useState(
     () => recognition.supported && (typeof navigator === "undefined" || navigator.onLine),
@@ -51,6 +62,16 @@ export function LessonPlay({ lesson, direction, t, speech, recognition, onExit, 
   const [draft, setDraft] = useState<Answer | null>(null);
   const [leaving, setLeaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [shownXp, setShownXp] = useState(0);
+  const combo = useRef(0);
+  const alive = useRef(true);
+
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+    };
+  }, []);
 
   const exercise = exercises[session.index];
   const locked = session.phase !== "question";
@@ -70,17 +91,45 @@ export function LessonPlay({ lesson, direction, t, speech, recognition, onExit, 
         saving={false}
         actionLabel={t.start}
         speech={speech}
-        onBack={onExit}
+        onBack={() => {
+          sound.play("button");
+          onExit();
+        }}
         onFinish={() => {
-          if (lesson.unlocked && exercises.length > 0) setPhase("play");
+          if (lesson.unlocked && exercises.length > 0) {
+            sound.play("button");
+            setPhase("play");
+          }
         }}
       />
     );
   }
 
+  function reactTo(next: SessionState) {
+    const status = next.lastGrade?.status;
+    if (status === "correct" || status === "almost") {
+      sound.play("correct");
+      combo.current += 1;
+      if (combo.current >= 2) window.setTimeout(() => sound.play("sparkle"), 260);
+      return;
+    }
+    if (status === "incorrect") {
+      combo.current = 0;
+      sound.play("wrong");
+      if (next.hearts < session.hearts) window.setTimeout(() => sound.play("heart"), 180);
+    }
+  }
+
+  function scoreAnswer(answer: Answer) {
+    if (!exercise || session.phase !== "question") return;
+    const next = submitAnswer(session, exercise, answer);
+    setSession(next);
+    reactTo(next);
+  }
+
   function check() {
-    if (!exercise || !draft || session.phase !== "question") return;
-    setSession(submitAnswer(session, exercise, draft));
+    if (!draft) return;
+    scoreAnswer(draft);
   }
 
   function advance() {
@@ -90,7 +139,17 @@ export function LessonPlay({ lesson, direction, t, speech, recognition, onExit, 
     if (next.outcome === "complete" && !saved) {
       setSaved(true);
       setPhase("done");
-      onFinished(completionSummary(next));
+      const summary = completionSummary(next);
+      sound.play("fanfare");
+      const ticks = 6;
+      for (let step = 1; step <= ticks; step += 1) {
+        window.setTimeout(() => {
+          if (!alive.current) return;
+          sound.play("xp");
+          setShownXp(Math.round((summary.xp * step) / ticks));
+        }, 980 + step * 90);
+      }
+      onFinished(summary);
       return;
     }
     if (next.outcome === "failed") setPhase("failed");
@@ -105,7 +164,17 @@ export function LessonPlay({ lesson, direction, t, speech, recognition, onExit, 
             {"⭐".repeat(summary.stars)}
           </p>
           <h1 className="mt-4 text-4xl font-bold">{t.doneTitle}</h1>
-          <button type="button" onClick={onExit} className="btn-3d btn-leaf mt-8 bg-leaf px-10 py-4 text-xl text-white">
+          <p className="mt-3 text-3xl font-bold text-leaf-dark">
+            +{shownXp} {t.xp}
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              sound.play("button");
+              onExit();
+            }}
+            className="btn-3d btn-leaf mt-8 bg-leaf px-10 py-4 text-xl text-white"
+          >
             {t.continue}
           </button>
         </div>
@@ -122,6 +191,8 @@ export function LessonPlay({ lesson, direction, t, speech, recognition, onExit, 
           <button
             type="button"
             onClick={() => {
+              sound.play("button");
+              combo.current = 0;
               setSession(startSession(lesson.id, MAX_HEARTS));
               setDraft(null);
               setPhase("play");
@@ -130,7 +201,14 @@ export function LessonPlay({ lesson, direction, t, speech, recognition, onExit, 
           >
             {t.tryAgain}
           </button>
-          <button type="button" onClick={onExit} className="btn-3d btn-soft mt-3 w-full bg-white px-8 py-4 text-xl">
+          <button
+            type="button"
+            onClick={() => {
+              sound.play("button");
+              onExit();
+            }}
+            className="btn-3d btn-soft mt-3 w-full bg-white px-8 py-4 text-xl"
+          >
             {t.back}
           </button>
         </div>
@@ -155,7 +233,10 @@ export function LessonPlay({ lesson, direction, t, speech, recognition, onExit, 
       <div className="flex items-center gap-3">
         <button
           type="button"
-          onClick={() => setLeaving(true)}
+          onClick={() => {
+            sound.play("button");
+            setLeaving(true);
+          }}
           className="grid size-12 place-items-center rounded-2xl bg-white text-2xl font-bold"
           aria-label={t.leave}
         >
@@ -177,30 +258,25 @@ export function LessonPlay({ lesson, direction, t, speech, recognition, onExit, 
             t={t}
             draft={draft}
             disabled={locked}
-            onSelect={(id) => setDraft({ type: "choice", choiceId: id })}
+            onSelect={(id) => {
+              sound.play("select");
+              setDraft({ type: "choice", choiceId: id });
+            }}
             onTokens={setTokens}
             onText={setText}
+            onEffect={(effect) => sound.play(effect)}
             onSolved={() => {
-              if (session.phase === "question" && exercise.type === "match") {
-                setSession(
-                  submitAnswer(session, exercise, {
-                    type: "match",
-                    matched: exercise.left.length,
-                    total: exercise.left.length,
-                  }),
-                );
+              if (exercise.type === "match") {
+                scoreAnswer({ type: "match", matched: exercise.left.length, total: exercise.left.length });
               }
             }}
             onTraced={() => {
-              if (session.phase === "question" && exercise.type === "trace") {
-                setSession(submitAnswer(session, exercise, { type: "trace", coverage: 1 }));
-              }
+              if (exercise.type === "trace") scoreAnswer({ type: "trace", coverage: 1 });
             }}
             onSpoken={(transcript) => {
-              if (session.phase === "question" && exercise.type === "say") {
-                setSession(submitAnswer(session, exercise, { type: "speech", transcript }));
-              }
+              if (exercise.type === "say") scoreAnswer({ type: "speech", transcript });
             }}
+            onMic={() => sound.play("button")}
             onEnter={check}
             speech={speech}
             recognition={recognition}
@@ -225,7 +301,10 @@ export function LessonPlay({ lesson, direction, t, speech, recognition, onExit, 
             ) : null}
             <button
               type="button"
-              onClick={advance}
+              onClick={() => {
+                if (session.index + 1 < exercises.length) sound.play("button");
+                advance();
+              }}
               className="btn-3d mt-3 w-full bg-white py-4 text-xl text-ink"
             >
               {t.continue}
@@ -253,10 +332,24 @@ export function LessonPlay({ lesson, direction, t, speech, recognition, onExit, 
         <div className="fixed inset-0 z-40 grid place-items-center bg-ink/40 p-4" role="presentation">
           <div role="dialog" aria-modal="true" className="w-full max-w-sm rounded-[2rem] bg-white p-6 text-center">
             <h2 className="text-2xl font-bold">{t.leaveTitle}</h2>
-            <button type="button" onClick={onExit} className="btn-3d mt-5 w-full bg-[#ff4b4b] py-4 text-xl text-white">
+            <button
+              type="button"
+              onClick={() => {
+                sound.play("button");
+                onExit();
+              }}
+              className="btn-3d mt-5 w-full bg-[#ff4b4b] py-4 text-xl text-white"
+            >
               {t.leave}
             </button>
-            <button type="button" onClick={() => setLeaving(false)} className="btn-3d btn-soft mt-3 w-full bg-white py-4 text-xl">
+            <button
+              type="button"
+              onClick={() => {
+                sound.play("button");
+                setLeaving(false);
+              }}
+              className="btn-3d btn-soft mt-3 w-full bg-white py-4 text-xl"
+            >
               {t.keepGoing}
             </button>
           </div>
@@ -277,6 +370,8 @@ function ExerciseBody({
   onSolved,
   onTraced,
   onSpoken,
+  onEffect,
+  onMic,
   onEnter,
   speech,
   recognition,
@@ -291,6 +386,8 @@ function ExerciseBody({
   onSolved: () => void;
   onTraced: () => void;
   onSpoken: (transcript: string) => void;
+  onEffect: (effect: "tap" | "select" | "wrong") => void;
+  onMic: () => void;
   onEnter: () => void;
   speech: SpeechSynthPort;
   recognition: SpeechRecognitionPort;
@@ -306,9 +403,19 @@ function ExerciseBody({
         <WordPicture exercise={exercise} t={t} selected={selected} disabled={disabled} onSelect={onSelect} />
       );
     case "match":
-      return <MatchPairs exercise={exercise} t={t} disabled={disabled} onSolved={onSolved} />;
+      return (
+        <MatchPairs exercise={exercise} t={t} disabled={disabled} onSolved={onSolved} onEffect={onEffect} />
+      );
     case "build":
-      return <BuildSentence exercise={exercise} t={t} disabled={disabled} onDraft={onTokens} />;
+      return (
+        <BuildSentence
+          exercise={exercise}
+          t={t}
+          disabled={disabled}
+          onDraft={onTokens}
+          onEffect={onEffect}
+        />
+      );
     case "type":
       return <TypeAnswer exercise={exercise} t={t} disabled={disabled} onDraft={onText} onEnter={onEnter} />;
     case "listen":
@@ -333,6 +440,7 @@ function ExerciseBody({
           recognition={recognition}
           disabled={disabled}
           onResult={onSpoken}
+          onMic={onMic}
         />
       );
     default:

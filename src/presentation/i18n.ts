@@ -51,6 +51,9 @@ export const copy = {
     sayHint: "Toca el micrófono y di la palabra",
     listening: "Te escucho…",
     skipped: "Está bien, seguimos.",
+    soundOn: "Sonido activado",
+    soundOff: "Sonido apagado",
+    xp: "XP",
   },
   en: {
     unitLabel: "Unit 7",
@@ -102,6 +105,9 @@ export const copy = {
     sayHint: "Tap the microphone and say the word",
     listening: "I'm listening…",
     skipped: "That's ok, let's keep going.",
+    soundOn: "Sound on",
+    soundOff: "Sound off",
+    xp: "XP",
   },
 } as const satisfies Record<Lang, Record<string, string>>;
 

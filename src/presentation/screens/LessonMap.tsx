@@ -11,23 +11,44 @@ type LessonMapProps = {
   nodes: LessonPathItem[];
   t: Copy;
   direction: Direction;
+  soundOn: boolean;
   onDirection: (direction: Direction) => void;
   onSelect: (id: string) => void;
+  onToggleSound: () => void;
+  onPress: () => void;
 };
 
-export function LessonMap({ nodes, t, direction, onDirection, onSelect }: LessonMapProps) {
+export function LessonMap({
+  nodes,
+  t,
+  direction,
+  soundOn,
+  onDirection,
+  onSelect,
+  onToggleSound,
+  onPress,
+}: LessonMapProps) {
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-xl flex-col px-4 pb-16 pt-6">
       <header className="rounded-[2rem] bg-white px-5 py-5 shadow-[0_8px_0_rgba(255,255,255,0.65)]">
         <div className="flex items-center gap-4">
           <PipoMark className="size-20 shrink-0" />
-          <div>
+          <div className="min-w-0 flex-1">
             <p className="text-sm font-bold uppercase tracking-wide text-sky">{t.unitLabel}</p>
             <h1 className="text-3xl font-bold leading-tight text-ink">
               Let&apos;s go to the market!
             </h1>
             <p className="mt-1 text-lg font-semibold text-leaf-dark">{t.hello}</p>
           </div>
+          <button
+            type="button"
+            aria-pressed={soundOn}
+            aria-label={soundOn ? t.soundOn : t.soundOff}
+            onClick={onToggleSound}
+            className="grid size-14 shrink-0 place-items-center rounded-2xl bg-cream text-2xl"
+          >
+            <span aria-hidden="true">{soundOn ? "🔊" : "🔇"}</span>
+          </button>
         </div>
         <p className="mt-4 rounded-2xl bg-cream px-4 py-3 text-lg leading-snug text-ink">
           {t.challenge}
@@ -39,7 +60,10 @@ export function LessonMap({ nodes, t, direction, onDirection, onSelect }: Lesson
               key={option}
               type="button"
               aria-pressed={direction === option}
-              onClick={() => onDirection(option)}
+              onClick={() => {
+                onPress();
+                onDirection(option);
+              }}
               className={[
                 "rounded-2xl px-1 py-3 text-sm font-bold",
                 direction === option ? "bg-leaf text-white" : "bg-cream text-ink",
@@ -70,7 +94,10 @@ export function LessonMap({ nodes, t, direction, onDirection, onSelect }: Lesson
                 >
                   <button
                     type="button"
-                    onClick={() => onSelect(node.id)}
+                    onClick={() => {
+                      onPress();
+                      onSelect(node.id);
+                    }}
                     aria-current={node.current ? "step" : undefined}
                     className={[
                       "relative grid size-24 place-items-center rounded-full border-4 bg-white text-5xl shadow-[0_6px_0_#e5e5e5]",
