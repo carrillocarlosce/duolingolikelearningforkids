@@ -93,6 +93,18 @@ export type Exercise =
     }
   | {
       id: string;
+      type: "spell";
+      word: string;
+      answerLang: Lang;
+      /** Word in the other language, when the child is translating. */
+      promptText: string;
+      showPromptText: boolean;
+      emoji: string;
+      tiles: string[];
+      letters: string[];
+    }
+  | {
+      id: string;
       type: "say";
       promptText: string;
       audioText: string;
@@ -154,7 +166,7 @@ export function sentenceSource(exercise: Exercise): {
 }
 
 /**
- * Language the child must write, build, trace, or say.
+ * Language the child must write, build, trace, spell, or say.
  * Choice exercises (picture, listen, match) return null even when they store an answer language for the options.
  */
 export function answerLanguage(exercise: Exercise): Lang | null {
@@ -162,6 +174,7 @@ export function answerLanguage(exercise: Exercise): Lang | null {
     case "type":
     case "build":
     case "trace":
+    case "spell":
     case "say":
       return exercise.answerLang;
     case "picture-word":

@@ -8,6 +8,7 @@ import {
 } from "@/domain/content/sentences";
 import type { Exercise, MatchSide } from "@/domain/exercises";
 import type { Direction, Lang } from "@/domain/language";
+import { lettersOf } from "@/domain/letter-strokes";
 import { getLesson, lessonCatalog, type LessonSummary } from "@/domain/lesson-path";
 
 export function mulberry32(seed: number): () => number {
@@ -193,6 +194,33 @@ function traceWord(item: VocabItem, lang: Lang): Exercise {
   };
 }
 
+const SPELL_POOL = "abcdefghijklmnopqrstuvwxyz".split("");
+const SPANISH_SPELL = ["á", "é", "í", "ó", "ú", "ñ"];
+
+function spellWord(item: VocabItem, prompt: Lang, answer: Lang, translating: boolean, rng: () => number): Exercise {
+  const letters = lettersOf(item[answer]);
+  const used = new Set(letters.map((letter) => letter.toLowerCase()));
+  const pool = [...SPELL_POOL, ...(answer === "es" ? SPANISH_SPELL : [])].filter((letter) => !used.has(letter));
+  const extras = shuffled(pool, rng).slice(0, 2);
+  let tiles = shuffled([...letters, ...extras], rng);
+  const prefixSolved = letters.length > 0 && letters.every((letter, index) => tiles[index] === letter);
+  if (prefixSolved && tiles.length > 1) {
+    const [first, second] = tiles;
+    tiles = [second as string, first as string, ...tiles.slice(2)];
+  }
+  return {
+    id: "",
+    type: "spell",
+    word: item[answer],
+    answerLang: answer,
+    promptText: translating ? item[prompt] : "",
+    showPromptText: translating,
+    emoji: item.emoji,
+    tiles,
+    letters,
+  };
+}
+
 function saySentence(sentence: Sentence, answer: Lang): Exercise {
   const sourceLang = otherLang(answer);
   return {
@@ -299,11 +327,17 @@ function matchPairs(items: readonly VocabItem[], direction: Direction, rng: () =
   return { id: "", type: "match", left, right };
 }
 
+export interface LessonBuildOptions {
+  /** When false, the writing lesson uses spell-the-word instead of tracing. Defaults to tracing. */
+  letterTracing?: boolean;
+}
+
 /** Practice round for one lesson. The say-it step is hidden when the mic or network is missing. */
 export function buildLessonExercises(
   lessonId: string,
   direction: Direction,
   rng: () => number = Math.random,
+  options: LessonBuildOptions = {},
 ): Exercise[] {
   const lesson = getLesson(lessonId);
   if (!lesson) return [];
@@ -322,7 +356,10 @@ export function buildLessonExercises(
     lines.slice(0, 2).forEach((line) => steps.push(typeSentence(line, prompt, answer, translating)));
     if (words.length >= 2) steps.push(matchPairs(words, direction, rng));
   } else if (lesson.kind === "writing") {
-    words.slice(0, 3).forEach((word) => steps.push(traceWord(word, answer)));
+    const traceLetters = options.letterTracing !== false;
+    words.slice(0, 3).forEach((word) => {
+      steps.push(traceLetters ? traceWord(word, answer) : spellWord(word, prompt, answer, translating, rng));
+    });
     words.slice(0, 3).forEach((word) => steps.push(typeWord(word, prompt, answer, translating)));
     if (lines[0]) steps.push(buildSentence(lines[0], answer, pool, rng));
     if (lines[1] ?? lines[0]) steps.push(typeSentence((lines[1] ?? lines[0]) as Sentence, prompt, answer, translating));

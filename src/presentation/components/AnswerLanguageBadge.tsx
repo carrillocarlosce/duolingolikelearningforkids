@@ -6,19 +6,21 @@ import type { Lang } from "@/domain/language";
 import { SPEECH_RATE_NORMAL } from "@/domain/speech";
 import type { Copy } from "@/presentation/i18n";
 
-type WriteTask = "write" | "build" | "trace" | "say";
+type WriteTask = "write" | "build" | "trace" | "spell" | "say";
 
 const cue: Record<Lang, Record<WriteTask, { mark: string; label: string }>> = {
   en: {
     write: { mark: "✏️", label: "Write in English" },
     build: { mark: "🧱", label: "Build in English" },
     trace: { mark: "✏️", label: "Trace in English" },
+    spell: { mark: "✏️", label: "Spell in English" },
     say: { mark: "🗣️", label: "Say it in English" },
   },
   es: {
     write: { mark: "✏️", label: "Escribe en español" },
     build: { mark: "🧱", label: "Arma en español" },
     trace: { mark: "✏️", label: "Traza en español" },
+    spell: { mark: "✏️", label: "Deletrea en español" },
     say: { mark: "🗣️", label: "Dilo en español" },
   },
 };
@@ -36,6 +38,8 @@ function writeTask(exercise: Exercise): WriteTask | null {
       return "build";
     case "trace":
       return "trace";
+    case "spell":
+      return "spell";
     case "say":
       return "say";
     default:

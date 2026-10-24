@@ -62,6 +62,7 @@ describe("audio level limits", () => {
       effectsVolume: DEFAULT_EFFECTS_VOLUME,
       voiceVolume: DEFAULT_VOICE_VOLUME,
       voiceSpeed: DEFAULT_VOICE_SPEED,
+      letterTracing: "auto",
     });
   });
 });

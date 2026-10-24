@@ -4,6 +4,12 @@ import { starsForMistakes, xpForStatus, XP_LESSON_BONUS, XP_PERFECT_BONUS } from
 
 export const TRACE_COVERAGE = 0.72;
 
+/** Spell tiles keep accents. "á" is not the same letter as "a". */
+export function spellMatches(given: readonly string[], expected: readonly string[]): boolean {
+  if (given.length !== expected.length) return false;
+  return given.every((token, index) => token.trim().toLowerCase() === (expected[index] ?? "").trim().toLowerCase());
+}
+
 export interface SessionState {
   lessonId: string;
   index: number;
@@ -71,6 +77,11 @@ export function gradeExercise(exercise: Exercise, answer: Answer): Grade {
     case "trace":
       if (answer.type !== "trace") return { status: "incorrect", canonical: exercise.word };
       return answer.coverage >= TRACE_COVERAGE
+        ? { status: "correct", canonical: exercise.word }
+        : { status: "incorrect", canonical: exercise.word };
+    case "spell":
+      if (answer.type !== "tokens") return { status: "incorrect", canonical: exercise.word };
+      return spellMatches(answer.tokens, exercise.letters)
         ? { status: "correct", canonical: exercise.word }
         : { status: "incorrect", canonical: exercise.word };
     default: {

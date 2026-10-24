@@ -91,6 +91,7 @@ function needsLevelMigration(stored: Profile, normalized: Profile): boolean {
     stored.sound !== normalized.sound ||
     stored.effectsVolume !== normalized.effectsVolume ||
     stored.voiceVolume !== normalized.voiceVolume ||
-    stored.voiceSpeed !== normalized.voiceSpeed
+    stored.voiceSpeed !== normalized.voiceSpeed ||
+    stored.letterTracing !== normalized.letterTracing
   );
 }

@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
 import type { Exercise } from "@/domain/exercises";
 import { XP_ALMOST, XP_CORRECT, XP_LESSON_BONUS, XP_PERFECT_BONUS } from "@/domain/scoring";
-import { completionSummary, continueSession, startSession, submitAnswer, TRACE_COVERAGE } from "@/domain/session";
+import {
+  completionSummary,
+  continueSession,
+  spellMatches,
+  startSession,
+  submitAnswer,
+  TRACE_COVERAGE,
+} from "@/domain/session";
 
 const picture = (id = "q1"): Exercise => ({
   id,
@@ -70,6 +77,31 @@ describe("lesson session", () => {
     expect(low.hearts).toBe(3);
     const done = submitAnswer(startSession("drinks", 3), trace, { type: "trace", coverage: TRACE_COVERAGE });
     expect(done.lastGrade?.status).toBe("correct");
+    const empty = submitAnswer(startSession("drinks", 5), trace, { type: "trace", coverage: 0 });
+    expect(empty.hearts).toBe(5);
+    expect(empty.lastGrade?.status).toBe("incorrect");
+  });
+
+  it("keeps accents in a spelling and spends a heart only when the finished word is wrong", () => {
+    const spell: Exercise = {
+      id: "s",
+      type: "spell",
+      word: "sándwich",
+      answerLang: "es",
+      promptText: "sandwich",
+      showPromptText: true,
+      emoji: "🥪",
+      tiles: ["s", "á", "n"],
+      letters: ["s", "á"],
+    };
+    expect(spellMatches(["s", "a"], ["s", "á"])).toBe(false);
+    expect(spellMatches(["S", "á"], ["s", "á"])).toBe(true);
+    const missed = submitAnswer(startSession("write-it", 5), spell, { type: "tokens", tokens: ["s", "a"] });
+    expect(missed.hearts).toBe(4);
+    expect(missed.lastGrade?.canonical).toBe("sándwich");
+    const right = submitAnswer(startSession("write-it", 5), spell, { type: "tokens", tokens: ["s", "á"] });
+    expect(right.hearts).toBe(5);
+    expect(right.lastGrade?.status).toBe("correct");
   });
 
   it("builds a sentence only when every tile is in order", () => {

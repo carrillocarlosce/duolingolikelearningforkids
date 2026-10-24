@@ -8,6 +8,7 @@ import { recordLessonResult } from "@/application/record-lesson-result";
 import { createAppServices, todayIsoDate } from "@/composition/create-services";
 import type { AudioLevels } from "@/domain/audio-settings";
 import type { Direction } from "@/domain/language";
+import { letterTracingEnabled, type LetterTracingMode } from "@/domain/letter-tracing";
 import { completedLessonIds, withAudioSettings, type Profile } from "@/domain/progress";
 import { SPEECH_RATE_NORMAL } from "@/domain/speech";
 import { copy } from "@/presentation/i18n";
@@ -54,6 +55,7 @@ export function App() {
 
   const lang = profile?.uiLang ?? "es";
   const t = copy[lang];
+  const coarsePhone = useCoarsePhone();
 
   if (!services || !profile) {
     return (
@@ -118,6 +120,12 @@ export function App() {
     persist({ ...current, direction });
   }
 
+  function changeLetterTracing(mode: LetterTracingMode) {
+    const current = profileRef.current;
+    if (!current) return;
+    persist({ ...current, letterTracing: mode });
+  }
+
   return (
     <>
       {toast ? (
@@ -130,6 +138,7 @@ export function App() {
           lesson={selected}
           direction={profile.direction}
           uiLang={profile.uiLang}
+          letterTracing={letterTracingEnabled(profile.letterTracing, coarsePhone)}
           t={t}
           speech={services.speech}
           recognition={services.recognition}
@@ -157,8 +166,11 @@ export function App() {
       {settingsOpen ? (
         <SettingsPanel
           levels={profile}
+          letterTracing={profile.letterTracing}
+          tracingOn={letterTracingEnabled(profile.letterTracing, coarsePhone)}
           t={t}
           onChange={changeAudio}
+          onLetterTracing={changeLetterTracing}
           onTestEffects={() => services.sound.preview("correct")}
           onTestVoice={() => services.speech.speak(t.testWord, profile.uiLang, SPEECH_RATE_NORMAL)}
           onClose={() => setSettingsOpen(false)}
@@ -166,6 +178,25 @@ export function App() {
       ) : null}
     </>
   );
+}
+
+/** Portrait phones are narrow. Landscape phones are short. A mouse stays on tracing. */
+const PHONE_TRACING_QUERY =
+  "(pointer: coarse) and (max-width: 720px), (pointer: coarse) and (max-height: 500px)";
+
+function useCoarsePhone(): boolean {
+  const [coarse, setCoarse] = useState(false);
+  useEffect(() => {
+    const query = window.matchMedia(PHONE_TRACING_QUERY);
+    const apply = () => setCoarse(query.matches);
+    const frame = requestAnimationFrame(apply);
+    query.addEventListener("change", apply);
+    return () => {
+      cancelAnimationFrame(frame);
+      query.removeEventListener("change", apply);
+    };
+  }, []);
+  return coarse;
 }
 
 function applyLevels(services: AppServices, profile: Profile) {

@@ -19,6 +19,7 @@ import {
 import type { Copy } from "@/presentation/i18n";
 import { AnswerLanguageBadge } from "@/presentation/components/AnswerLanguageBadge";
 import { SayPrompt } from "@/presentation/exercises/SayPrompt";
+import { SpellWord } from "@/presentation/exercises/SpellWord";
 import { TraceWord } from "@/presentation/exercises/TraceWord";
 import {
   BuildSentence,
@@ -34,6 +35,8 @@ type LessonPlayProps = {
   lesson: LessonPathItem;
   direction: Direction;
   uiLang: Lang;
+  /** Captured when the lesson opens so a settings change cannot swap the exercise mid-round. */
+  letterTracing: boolean;
   t: Copy;
   speech: SpeechSynthPort;
   recognition: SpeechRecognitionPort;
@@ -46,6 +49,7 @@ export function LessonPlay({
   lesson,
   direction,
   uiLang,
+  letterTracing,
   t,
   speech,
   recognition,
@@ -54,13 +58,14 @@ export function LessonPlay({
   onFinished,
 }: LessonPlayProps) {
   const [seed] = useState(() => Math.floor(Math.random() * 1_000_000_000));
+  const [useTracing] = useState(letterTracing);
   const [canSay] = useState(
     () => recognition.supported && (typeof navigator === "undefined" || navigator.onLine),
   );
   const exercises = useMemo(() => {
-    const built = buildLessonExercises(lesson.id, direction, mulberry32(seed));
+    const built = buildLessonExercises(lesson.id, direction, mulberry32(seed), { letterTracing: useTracing });
     return canSay ? built : built.filter((exercise) => exercise.type !== "say");
-  }, [canSay, direction, lesson.id, seed]);
+  }, [canSay, direction, lesson.id, seed, useTracing]);
   const [phase, setPhase] = useState<"intro" | "play" | "done" | "failed">("intro");
   const [session, setSession] = useState<SessionState>(() => startSession(lesson.id, MAX_HEARTS));
   const [draft, setDraft] = useState<Answer | null>(null);
@@ -238,7 +243,7 @@ export function LessonPlay({
   const selfCheck = exercise?.type === "match" || exercise?.type === "trace" || exercise?.type === "say";
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-xl flex-col px-4 pt-4 pb-36">
+    <div className="mx-auto flex min-h-dvh w-full max-w-xl flex-col px-4 pt-4 pb-28">
       <div className="flex items-center gap-3">
         <button
           type="button"
@@ -282,6 +287,9 @@ export function LessonPlay({
             }}
             onTraced={() => {
               if (exercise.type === "trace") scoreAnswer({ type: "trace", coverage: 1 });
+            }}
+            onSpelled={(tokens) => {
+              if (exercise.type === "spell") scoreAnswer({ type: "tokens", tokens });
             }}
             onSpoken={(transcript) => {
               if (exercise.type === "say") scoreAnswer({ type: "speech", transcript });
@@ -397,6 +405,7 @@ function ExerciseBody({
   onText,
   onSolved,
   onTraced,
+  onSpelled,
   onSpoken,
   onEffect,
   onMic,
@@ -414,6 +423,7 @@ function ExerciseBody({
   onText: (text: string) => void;
   onSolved: () => void;
   onTraced: () => void;
+  onSpelled: (tokens: string[]) => void;
   onSpoken: (transcript: string) => void;
   onEffect: (effect: "tap" | "select" | "wrong") => void;
   onMic: () => void;
@@ -470,7 +480,21 @@ function ExerciseBody({
         />
       );
     case "trace":
-      return <TraceWord exercise={exercise} t={t} disabled={disabled} onSolved={onTraced} />;
+      return (
+        <TraceWord exercise={exercise} t={t} disabled={disabled} onSolved={onTraced} />
+      );
+    case "spell":
+      return (
+        <SpellWord
+          exercise={exercise}
+          t={t}
+          speech={speech}
+          disabled={disabled}
+          onDraft={onTokens}
+          onSolved={onSpelled}
+          onEffect={onEffect}
+        />
+      );
     case "say":
       return (
         <SayPrompt
