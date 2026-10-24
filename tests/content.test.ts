@@ -45,6 +45,11 @@ describe("Unit 7 content", () => {
         "I like apples",
         "I want pizza",
         "My restaurant is called Sunny Food",
+        "I don't like cake",
+        "Can I have milk, please?",
+        "How much is the apple?",
+        "How much are the grapes?",
+        "Do you want pizza?",
       ]),
     );
   });
@@ -58,6 +63,20 @@ describe("Unit 7 content", () => {
     }
     expect(practiceCards("sweet-treats").map((card) => card.en)).toEqual(["cake", "ice cream", "cookies"]);
     expect(practiceCards("word-review")).toHaveLength(vocabulary.length);
+    expect(practiceCards("checkpoint-sweets").map((card) => card.en)).toEqual([
+      "cake",
+      "ice cream",
+      "cookies",
+      "I don't like cake",
+      "I like cookies",
+    ]);
+    expect(practiceCards("mix-picnic").map((card) => card.en)).toEqual([
+      "apple",
+      "juice",
+      "sandwich",
+      "fruit",
+      "cookies",
+    ]);
     expect(practiceCards("menu-sentences").map((card) => card.es)).toContain("Leche y un sándwich");
   });
 });

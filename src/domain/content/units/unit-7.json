@@ -1,56 +1,143 @@
 {
   "id": "unit-7",
-  "title": { "en": "Unit 7", "es": "Unidad 7" },
+  "title": {
+    "en": "Unit 7",
+    "es": "Unidad 7"
+  },
   "vocabulary": [
-    { "id": "cake", "en": "cake", "es": "pastel", "esAlternates": ["torta", "queque"], "emoji": "🍰", "healthy": false },
-    { "id": "apple", "en": "apple", "es": "manzana", "emoji": "🍎", "healthy": true },
+    {
+      "id": "cake",
+      "en": "cake",
+      "es": "pastel",
+      "esAlternates": [
+        "torta",
+        "queque"
+      ],
+      "emoji": "🍰",
+      "healthy": false
+    },
+    {
+      "id": "apple",
+      "en": "apple",
+      "es": "manzana",
+      "emoji": "🍎",
+      "healthy": true
+    },
     {
       "id": "ice-cream",
       "en": "ice cream",
       "es": "helado",
-      "enAlternates": ["ice-cream"],
+      "enAlternates": [
+        "ice-cream"
+      ],
       "emoji": "🍦",
       "healthy": false
     },
-    { "id": "juice", "en": "juice", "es": "jugo", "emoji": "🧃", "healthy": false },
-    { "id": "milk", "en": "milk", "es": "leche", "emoji": "🥛", "healthy": true },
-    { "id": "grapes", "en": "grapes", "es": "uvas", "emoji": "🍇", "healthy": true },
-    { "id": "pizza", "en": "pizza", "es": "pizza", "emoji": "🍕", "healthy": false },
-    { "id": "salad", "en": "salad", "es": "ensalada", "emoji": "🥗", "healthy": true },
+    {
+      "id": "juice",
+      "en": "juice",
+      "es": "jugo",
+      "emoji": "🧃",
+      "healthy": false
+    },
+    {
+      "id": "milk",
+      "en": "milk",
+      "es": "leche",
+      "emoji": "🥛",
+      "healthy": true
+    },
+    {
+      "id": "grapes",
+      "en": "grapes",
+      "es": "uvas",
+      "emoji": "🍇",
+      "healthy": true
+    },
+    {
+      "id": "pizza",
+      "en": "pizza",
+      "es": "pizza",
+      "emoji": "🍕",
+      "healthy": false
+    },
+    {
+      "id": "salad",
+      "en": "salad",
+      "es": "ensalada",
+      "emoji": "🥗",
+      "healthy": true
+    },
     {
       "id": "hamburger",
       "en": "hamburger",
       "es": "hamburguesa",
-      "enAlternates": ["burger"],
+      "enAlternates": [
+        "burger"
+      ],
       "emoji": "🍔",
       "healthy": false
     },
-    { "id": "fruit", "en": "fruit", "es": "fruta", "emoji": "🍓", "healthy": true },
+    {
+      "id": "fruit",
+      "en": "fruit",
+      "es": "fruta",
+      "emoji": "🍓",
+      "healthy": true
+    },
     {
       "id": "pasta",
       "en": "pasta",
       "es": "fideos",
-      "esAlternates": ["pasta", "tallarines"],
+      "esAlternates": [
+        "pasta",
+        "tallarines"
+      ],
       "emoji": "🍝",
       "healthy": false
     },
-    { "id": "orange", "en": "orange", "es": "naranja", "emoji": "🍊", "healthy": true },
+    {
+      "id": "orange",
+      "en": "orange",
+      "es": "naranja",
+      "emoji": "🍊",
+      "healthy": true
+    },
     {
       "id": "sandwich",
       "en": "sandwich",
       "es": "sándwich",
-      "esAlternates": ["sandwich"],
+      "esAlternates": [
+        "sandwich"
+      ],
       "emoji": "🥪",
       "healthy": false
     },
-    { "id": "chicken", "en": "chicken", "es": "pollo", "emoji": "🍗", "healthy": true },
-    { "id": "cookies", "en": "cookies", "es": "galletas", "emoji": "🍪", "healthy": false },
+    {
+      "id": "chicken",
+      "en": "chicken",
+      "es": "pollo",
+      "emoji": "🍗",
+      "healthy": true
+    },
+    {
+      "id": "cookies",
+      "en": "cookies",
+      "es": "galletas",
+      "emoji": "🍪",
+      "healthy": false
+    },
     {
       "id": "hot-dog",
       "en": "hot dog",
       "es": "hot dog",
-      "enAlternates": ["hotdog", "hot-dog"],
-      "esAlternates": ["perro caliente"],
+      "enAlternates": [
+        "hotdog",
+        "hot-dog"
+      ],
+      "esAlternates": [
+        "perro caliente"
+      ],
       "emoji": "🌭",
       "healthy": false
     }
@@ -60,161 +147,1401 @@
       "id": "milk-sandwich",
       "en": "Milk and a sandwich",
       "es": "Leche y un sándwich",
-      "enTokens": ["Milk", "and", "a", "sandwich"],
-      "esTokens": ["Leche", "y", "un", "sándwich"],
-      "imageIds": ["milk", "sandwich"],
-      "scene": { "emojis": ["🥛", "🥪"] }
+      "enTokens": [
+        "Milk",
+        "and",
+        "a",
+        "sandwich"
+      ],
+      "esTokens": [
+        "Leche",
+        "y",
+        "un",
+        "sándwich"
+      ],
+      "imageIds": [
+        "milk",
+        "sandwich"
+      ],
+      "scene": {
+        "emojis": [
+          "🥛",
+          "🥪"
+        ]
+      }
     },
     {
       "id": "pasta-juice",
       "en": "Pasta and orange juice",
       "es": "Fideos y jugo de naranja",
-      "enTokens": ["Pasta", "and", "orange", "juice"],
-      "esTokens": ["Fideos", "y", "jugo", "de", "naranja"],
-      "esAlternates": ["Pasta y jugo de naranja", "Tallarines y jugo de naranja"],
-      "imageIds": ["pasta", "orange", "juice"],
-      "scene": { "emojis": ["🍝", "🍊", "🧃"] }
+      "enTokens": [
+        "Pasta",
+        "and",
+        "orange",
+        "juice"
+      ],
+      "esTokens": [
+        "Fideos",
+        "y",
+        "jugo",
+        "de",
+        "naranja"
+      ],
+      "esAlternates": [
+        "Pasta y jugo de naranja",
+        "Tallarines y jugo de naranja"
+      ],
+      "imageIds": [
+        "pasta",
+        "orange",
+        "juice"
+      ],
+      "scene": {
+        "emojis": [
+          "🍝",
+          "🍊",
+          "🧃"
+        ]
+      }
     },
     {
       "id": "chicken-salad",
       "en": "Chicken and salad",
       "es": "Pollo y ensalada",
-      "enTokens": ["Chicken", "and", "salad"],
-      "esTokens": ["Pollo", "y", "ensalada"],
-      "imageIds": ["chicken", "salad"],
-      "scene": { "emojis": ["🍗", "🥗"] }
+      "enTokens": [
+        "Chicken",
+        "and",
+        "salad"
+      ],
+      "esTokens": [
+        "Pollo",
+        "y",
+        "ensalada"
+      ],
+      "imageIds": [
+        "chicken",
+        "salad"
+      ],
+      "scene": {
+        "emojis": [
+          "🍗",
+          "🥗"
+        ]
+      }
     },
     {
       "id": "fruit-salad",
       "en": "Fruit salad",
       "es": "Ensalada de frutas",
-      "enTokens": ["Fruit", "salad"],
-      "esTokens": ["Ensalada", "de", "frutas"],
-      "imageIds": ["fruit", "salad"],
-      "scene": { "emojis": ["🍓", "🥗"] }
+      "enTokens": [
+        "Fruit",
+        "salad"
+      ],
+      "esTokens": [
+        "Ensalada",
+        "de",
+        "frutas"
+      ],
+      "imageIds": [
+        "fruit",
+        "salad"
+      ],
+      "scene": {
+        "emojis": [
+          "🍓",
+          "🥗"
+        ]
+      }
     },
     {
       "id": "like-apples",
       "en": "I like apples",
       "es": "Me gustan las manzanas",
-      "enTokens": ["I", "like", "apples"],
-      "esTokens": ["Me", "gustan", "las", "manzanas"],
-      "imageIds": ["apple"],
-      "scene": { "mascot": "like", "emojis": ["🍎"] },
-      "cloze": { "en": "I like ___", "es": "Me gustan las ___" }
+      "enTokens": [
+        "I",
+        "like",
+        "apples"
+      ],
+      "esTokens": [
+        "Me",
+        "gustan",
+        "las",
+        "manzanas"
+      ],
+      "imageIds": [
+        "apple"
+      ],
+      "scene": {
+        "mascot": "like",
+        "emojis": [
+          "🍎"
+        ]
+      },
+      "cloze": {
+        "en": "I like ___",
+        "es": "Me gustan las ___"
+      }
     },
     {
       "id": "want-pizza",
       "en": "I want pizza",
       "es": "Quiero pizza",
-      "enTokens": ["I", "want", "pizza"],
-      "esTokens": ["Quiero", "pizza"],
-      "imageIds": ["pizza"],
-      "scene": { "mascot": "want", "emojis": ["🍕"] },
-      "cloze": { "en": "I want ___", "es": "Quiero ___" }
+      "enTokens": [
+        "I",
+        "want",
+        "pizza"
+      ],
+      "esTokens": [
+        "Quiero",
+        "pizza"
+      ],
+      "imageIds": [
+        "pizza"
+      ],
+      "scene": {
+        "mascot": "want",
+        "emojis": [
+          "🍕"
+        ]
+      },
+      "cloze": {
+        "en": "I want ___",
+        "es": "Quiero ___"
+      }
     },
     {
       "id": "like-milk",
       "en": "I like milk",
       "es": "Me gusta la leche",
-      "enTokens": ["I", "like", "milk"],
-      "esTokens": ["Me", "gusta", "la", "leche"],
-      "imageIds": ["milk"],
-      "scene": { "mascot": "like", "emojis": ["🥛"] },
-      "cloze": { "en": "I like ___", "es": "Me gusta la ___" }
+      "enTokens": [
+        "I",
+        "like",
+        "milk"
+      ],
+      "esTokens": [
+        "Me",
+        "gusta",
+        "la",
+        "leche"
+      ],
+      "imageIds": [
+        "milk"
+      ],
+      "scene": {
+        "mascot": "like",
+        "emojis": [
+          "🥛"
+        ]
+      },
+      "cloze": {
+        "en": "I like ___",
+        "es": "Me gusta la ___"
+      }
     },
     {
       "id": "want-hamburger",
       "en": "I want a hamburger",
       "es": "Quiero una hamburguesa",
-      "enTokens": ["I", "want", "a", "hamburger"],
-      "esTokens": ["Quiero", "una", "hamburguesa"],
-      "imageIds": ["hamburger"],
-      "scene": { "mascot": "want", "emojis": ["🍔"] },
-      "cloze": { "en": "I want a ___", "es": "Quiero una ___" }
+      "enTokens": [
+        "I",
+        "want",
+        "a",
+        "hamburger"
+      ],
+      "esTokens": [
+        "Quiero",
+        "una",
+        "hamburguesa"
+      ],
+      "imageIds": [
+        "hamburger"
+      ],
+      "scene": {
+        "mascot": "want",
+        "emojis": [
+          "🍔"
+        ]
+      },
+      "cloze": {
+        "en": "I want a ___",
+        "es": "Quiero una ___"
+      }
     },
     {
       "id": "want-cookies",
       "en": "I want cookies",
       "es": "Quiero galletas",
-      "enTokens": ["I", "want", "cookies"],
-      "esTokens": ["Quiero", "galletas"],
-      "imageIds": ["cookies"],
-      "scene": { "mascot": "want", "emojis": ["🍪"] },
-      "cloze": { "en": "I want ___", "es": "Quiero ___" }
+      "enTokens": [
+        "I",
+        "want",
+        "cookies"
+      ],
+      "esTokens": [
+        "Quiero",
+        "galletas"
+      ],
+      "imageIds": [
+        "cookies"
+      ],
+      "scene": {
+        "mascot": "want",
+        "emojis": [
+          "🍪"
+        ]
+      },
+      "cloze": {
+        "en": "I want ___",
+        "es": "Quiero ___"
+      }
     },
     {
       "id": "orange-juice",
       "en": "Orange juice",
       "es": "Jugo de naranja",
-      "enTokens": ["Orange", "juice"],
-      "esTokens": ["Jugo", "de", "naranja"],
-      "imageIds": ["orange", "juice"],
-      "scene": { "emojis": ["🍊", "🧃"] }
+      "enTokens": [
+        "Orange",
+        "juice"
+      ],
+      "esTokens": [
+        "Jugo",
+        "de",
+        "naranja"
+      ],
+      "imageIds": [
+        "orange",
+        "juice"
+      ],
+      "scene": {
+        "emojis": [
+          "🍊",
+          "🧃"
+        ]
+      }
     },
     {
       "id": "my-restaurant",
       "en": "My restaurant is called Sunny Food",
       "es": "Mi restaurante se llama Sunny Food",
-      "enTokens": ["My", "restaurant", "is", "called", "Sunny", "Food"],
-      "esTokens": ["Mi", "restaurante", "se", "llama", "Sunny", "Food"],
-      "imageIds": ["fruit", "salad"],
-      "scene": { "mascot": "shop", "emojis": ["🍽️"] }
+      "enTokens": [
+        "My",
+        "restaurant",
+        "is",
+        "called",
+        "Sunny",
+        "Food"
+      ],
+      "esTokens": [
+        "Mi",
+        "restaurante",
+        "se",
+        "llama",
+        "Sunny",
+        "Food"
+      ],
+      "imageIds": [
+        "fruit",
+        "salad"
+      ],
+      "scene": {
+        "mascot": "shop",
+        "emojis": [
+          "🍽️"
+        ]
+      }
+    },
+    {
+      "id": "dont-like-cake",
+      "en": "I don't like cake",
+      "es": "No me gusta el pastel",
+      "enTokens": [
+        "I",
+        "don't",
+        "like",
+        "cake"
+      ],
+      "esTokens": [
+        "No",
+        "me",
+        "gusta",
+        "el",
+        "pastel"
+      ],
+      "esAlternates": [
+        "No me gusta la torta",
+        "No me gusta el queque"
+      ],
+      "imageIds": [
+        "cake"
+      ],
+      "scene": {
+        "mascot": "like",
+        "emojis": [
+          "🍰"
+        ]
+      },
+      "cloze": {
+        "en": "I don't like ___",
+        "es": "No me gusta el ___"
+      }
+    },
+    {
+      "id": "dont-like-cookies",
+      "en": "I don't like cookies",
+      "es": "No me gustan las galletas",
+      "enTokens": [
+        "I",
+        "don't",
+        "like",
+        "cookies"
+      ],
+      "esTokens": [
+        "No",
+        "me",
+        "gustan",
+        "las",
+        "galletas"
+      ],
+      "imageIds": [
+        "cookies"
+      ],
+      "scene": {
+        "mascot": "like",
+        "emojis": [
+          "🍪"
+        ]
+      },
+      "cloze": {
+        "en": "I don't like ___",
+        "es": "No me gustan las ___"
+      }
+    },
+    {
+      "id": "like-cookies",
+      "en": "I like cookies",
+      "es": "Me gustan las galletas",
+      "enTokens": [
+        "I",
+        "like",
+        "cookies"
+      ],
+      "esTokens": [
+        "Me",
+        "gustan",
+        "las",
+        "galletas"
+      ],
+      "imageIds": [
+        "cookies"
+      ],
+      "scene": {
+        "mascot": "like",
+        "emojis": [
+          "🍪"
+        ]
+      },
+      "cloze": {
+        "en": "I like ___",
+        "es": "Me gustan las ___"
+      }
+    },
+    {
+      "id": "have-milk",
+      "en": "Can I have milk, please?",
+      "es": "¿Me da leche, por favor?",
+      "enTokens": [
+        "Can",
+        "I",
+        "have",
+        "milk,",
+        "please?"
+      ],
+      "esTokens": [
+        "¿Me",
+        "da",
+        "leche,",
+        "por",
+        "favor?"
+      ],
+      "imageIds": [
+        "milk"
+      ],
+      "scene": {
+        "mascot": "want",
+        "emojis": [
+          "🥛"
+        ]
+      },
+      "cloze": {
+        "en": "Can I have ___, please?",
+        "es": "¿Me da ___, por favor?"
+      }
+    },
+    {
+      "id": "have-juice",
+      "en": "Can I have juice, please?",
+      "es": "¿Me da jugo, por favor?",
+      "enTokens": [
+        "Can",
+        "I",
+        "have",
+        "juice,",
+        "please?"
+      ],
+      "esTokens": [
+        "¿Me",
+        "da",
+        "jugo,",
+        "por",
+        "favor?"
+      ],
+      "imageIds": [
+        "juice"
+      ],
+      "scene": {
+        "mascot": "want",
+        "emojis": [
+          "🧃"
+        ]
+      },
+      "cloze": {
+        "en": "Can I have ___, please?",
+        "es": "¿Me da ___, por favor?"
+      }
+    },
+    {
+      "id": "have-sandwich",
+      "en": "Can I have a sandwich, please?",
+      "es": "¿Me da un sándwich, por favor?",
+      "enTokens": [
+        "Can",
+        "I",
+        "have",
+        "a",
+        "sandwich,",
+        "please?"
+      ],
+      "esTokens": [
+        "¿Me",
+        "da",
+        "un",
+        "sándwich,",
+        "por",
+        "favor?"
+      ],
+      "imageIds": [
+        "sandwich"
+      ],
+      "scene": {
+        "mascot": "want",
+        "emojis": [
+          "🥪"
+        ]
+      },
+      "cloze": {
+        "en": "Can I have a ___, please?",
+        "es": "¿Me da un ___, por favor?"
+      }
+    },
+    {
+      "id": "price-apple",
+      "en": "How much is the apple?",
+      "es": "¿Cuánto cuesta la manzana?",
+      "enTokens": [
+        "How",
+        "much",
+        "is",
+        "the",
+        "apple?"
+      ],
+      "esTokens": [
+        "¿Cuánto",
+        "cuesta",
+        "la",
+        "manzana?"
+      ],
+      "imageIds": [
+        "apple"
+      ],
+      "scene": {
+        "mascot": "shop",
+        "emojis": [
+          "🍎"
+        ]
+      },
+      "cloze": {
+        "en": "How much is the ___?",
+        "es": "¿Cuánto cuesta la ___?"
+      }
+    },
+    {
+      "id": "price-orange",
+      "en": "How much is the orange?",
+      "es": "¿Cuánto cuesta la naranja?",
+      "enTokens": [
+        "How",
+        "much",
+        "is",
+        "the",
+        "orange?"
+      ],
+      "esTokens": [
+        "¿Cuánto",
+        "cuesta",
+        "la",
+        "naranja?"
+      ],
+      "imageIds": [
+        "orange"
+      ],
+      "scene": {
+        "mascot": "shop",
+        "emojis": [
+          "🍊"
+        ]
+      },
+      "cloze": {
+        "en": "How much is the ___?",
+        "es": "¿Cuánto cuesta la ___?"
+      }
+    },
+    {
+      "id": "price-grapes",
+      "en": "How much are the grapes?",
+      "es": "¿Cuánto cuestan las uvas?",
+      "enTokens": [
+        "How",
+        "much",
+        "are",
+        "the",
+        "grapes?"
+      ],
+      "esTokens": [
+        "¿Cuánto",
+        "cuestan",
+        "las",
+        "uvas?"
+      ],
+      "imageIds": [
+        "grapes"
+      ],
+      "scene": {
+        "mascot": "shop",
+        "emojis": [
+          "🍇"
+        ]
+      },
+      "cloze": {
+        "en": "How much are the ___?",
+        "es": "¿Cuánto cuestan las ___?"
+      }
+    },
+    {
+      "id": "offer-pizza",
+      "en": "Do you want pizza?",
+      "es": "¿Quieres pizza?",
+      "enTokens": [
+        "Do",
+        "you",
+        "want",
+        "pizza?"
+      ],
+      "esTokens": [
+        "¿Quieres",
+        "pizza?"
+      ],
+      "imageIds": [
+        "pizza"
+      ],
+      "scene": {
+        "mascot": "want",
+        "emojis": [
+          "🍕"
+        ]
+      },
+      "cloze": {
+        "en": "Do you want ___?",
+        "es": "¿Quieres ___?"
+      }
+    },
+    {
+      "id": "offer-hamburger",
+      "en": "Do you want a hamburger?",
+      "es": "¿Quieres una hamburguesa?",
+      "enTokens": [
+        "Do",
+        "you",
+        "want",
+        "a",
+        "hamburger?"
+      ],
+      "esTokens": [
+        "¿Quieres",
+        "una",
+        "hamburguesa?"
+      ],
+      "imageIds": [
+        "hamburger"
+      ],
+      "scene": {
+        "mascot": "want",
+        "emojis": [
+          "🍔"
+        ]
+      },
+      "cloze": {
+        "en": "Do you want a ___?",
+        "es": "¿Quieres una ___?"
+      }
+    },
+    {
+      "id": "offer-sandwich",
+      "en": "Do you want a sandwich?",
+      "es": "¿Quieres un sándwich?",
+      "enTokens": [
+        "Do",
+        "you",
+        "want",
+        "a",
+        "sandwich?"
+      ],
+      "esTokens": [
+        "¿Quieres",
+        "un",
+        "sándwich?"
+      ],
+      "imageIds": [
+        "sandwich"
+      ],
+      "scene": {
+        "mascot": "want",
+        "emojis": [
+          "🥪"
+        ]
+      },
+      "cloze": {
+        "en": "Do you want a ___?",
+        "es": "¿Quieres un ___?"
+      }
+    },
+    {
+      "id": "like-salad",
+      "en": "I like salad",
+      "es": "Me gusta la ensalada",
+      "enTokens": [
+        "I",
+        "like",
+        "salad"
+      ],
+      "esTokens": [
+        "Me",
+        "gusta",
+        "la",
+        "ensalada"
+      ],
+      "imageIds": [
+        "salad"
+      ],
+      "scene": {
+        "mascot": "like",
+        "emojis": [
+          "🥗"
+        ]
+      },
+      "cloze": {
+        "en": "I like ___",
+        "es": "Me gusta la ___"
+      }
     }
   ],
   "lessons": [
     {
       "id": "sweet-treats",
       "emoji": "🍰",
-      "title": { "en": "Sweet treats", "es": "Cosas dulces" },
-      "blurb": { "en": "Cake, ice cream, and cookies.", "es": "Pastel, helado y galletas." },
+      "title": {
+        "en": "Sweet treats",
+        "es": "Cosas dulces"
+      },
+      "blurb": {
+        "en": "Cake, ice cream, and cookies.",
+        "es": "Pastel, helado y galletas."
+      },
       "kind": "vocab",
-      "vocabIds": ["cake", "ice-cream", "cookies"],
+      "vocabIds": [
+        "cake",
+        "ice-cream",
+        "cookies"
+      ],
       "sentenceIds": []
+    },
+    {
+      "id": "sweet-listen",
+      "emoji": "👂",
+      "title": {
+        "en": "Hear the sweets",
+        "es": "Escucha lo dulce"
+      },
+      "blurb": {
+        "en": "Listen, then tap the sweet.",
+        "es": "Escucha y toca lo dulce."
+      },
+      "kind": "vocab",
+      "vocabIds": [
+        "cake",
+        "ice-cream",
+        "cookies"
+      ],
+      "sentenceIds": [],
+      "skill": "listen"
+    },
+    {
+      "id": "sweet-spell",
+      "emoji": "🔤",
+      "title": {
+        "en": "Spell the sweets",
+        "es": "Deletrea lo dulce"
+      },
+      "blurb": {
+        "en": "Tap the letters for each sweet.",
+        "es": "Toca las letras de cada dulce."
+      },
+      "kind": "writing",
+      "vocabIds": [
+        "cake",
+        "ice-cream",
+        "cookies"
+      ],
+      "sentenceIds": [],
+      "skill": "spell"
+    },
+    {
+      "id": "sweet-write",
+      "emoji": "✍️",
+      "title": {
+        "en": "Write the sweets",
+        "es": "Escribe lo dulce"
+      },
+      "blurb": {
+        "en": "Trace or spell, then type the word.",
+        "es": "Traza o deletrea, y luego escribe."
+      },
+      "kind": "writing",
+      "vocabIds": [
+        "cake",
+        "ice-cream",
+        "cookies"
+      ],
+      "sentenceIds": [],
+      "skill": "write"
+    },
+    {
+      "id": "pattern-like",
+      "emoji": "💛",
+      "title": {
+        "en": "I like, I don't like",
+        "es": "Me gusta, no me gusta"
+      },
+      "blurb": {
+        "en": "I like cookies. I don't like cake.",
+        "es": "Me gustan las galletas. No me gusta el pastel."
+      },
+      "kind": "sentences",
+      "vocabIds": [],
+      "sentenceIds": [
+        "dont-like-cake",
+        "dont-like-cookies",
+        "like-cookies"
+      ],
+      "skill": "sentence"
+    },
+    {
+      "id": "checkpoint-sweets",
+      "emoji": "🏁",
+      "title": {
+        "en": "Sweets checkpoint",
+        "es": "Punto dulce"
+      },
+      "blurb": {
+        "en": "A short mix of the sweet words.",
+        "es": "Una mezcla corta de lo dulce."
+      },
+      "kind": "review",
+      "vocabIds": [
+        "cake",
+        "ice-cream",
+        "cookies"
+      ],
+      "sentenceIds": [
+        "dont-like-cake",
+        "like-cookies"
+      ],
+      "skill": "checkpoint"
     },
     {
       "id": "fruits",
       "emoji": "🍎",
-      "title": { "en": "Fruits", "es": "Frutas" },
-      "blurb": { "en": "Apple, grapes, orange, and fruit.", "es": "Manzana, uvas, naranja y fruta." },
+      "title": {
+        "en": "Fruits",
+        "es": "Frutas"
+      },
+      "blurb": {
+        "en": "Apple, grapes, orange, and fruit.",
+        "es": "Manzana, uvas, naranja y fruta."
+      },
       "kind": "vocab",
-      "vocabIds": ["apple", "grapes", "orange", "fruit"],
+      "vocabIds": [
+        "apple",
+        "grapes",
+        "orange",
+        "fruit"
+      ],
       "sentenceIds": []
+    },
+    {
+      "id": "fruit-listen",
+      "emoji": "👂",
+      "title": {
+        "en": "Hear the fruit",
+        "es": "Escucha la fruta"
+      },
+      "blurb": {
+        "en": "Listen, then tap the fruit.",
+        "es": "Escucha y toca la fruta."
+      },
+      "kind": "vocab",
+      "vocabIds": [
+        "apple",
+        "grapes",
+        "orange",
+        "fruit"
+      ],
+      "sentenceIds": [],
+      "skill": "listen"
+    },
+    {
+      "id": "fruit-spell",
+      "emoji": "🔤",
+      "title": {
+        "en": "Spell the fruit",
+        "es": "Deletrea la fruta"
+      },
+      "blurb": {
+        "en": "Tap the letters for each fruit.",
+        "es": "Toca las letras de cada fruta."
+      },
+      "kind": "writing",
+      "vocabIds": [
+        "apple",
+        "grapes",
+        "orange",
+        "fruit"
+      ],
+      "sentenceIds": [],
+      "skill": "spell"
+    },
+    {
+      "id": "fruit-write",
+      "emoji": "✍️",
+      "title": {
+        "en": "Write the fruit",
+        "es": "Escribe la fruta"
+      },
+      "blurb": {
+        "en": "Trace or spell, then type the word.",
+        "es": "Traza o deletrea, y luego escribe."
+      },
+      "kind": "writing",
+      "vocabIds": [
+        "apple",
+        "grapes",
+        "orange",
+        "fruit"
+      ],
+      "sentenceIds": [],
+      "skill": "write"
+    },
+    {
+      "id": "pattern-price",
+      "emoji": "🏷️",
+      "title": {
+        "en": "How much is it?",
+        "es": "¿Cuánto cuesta?"
+      },
+      "blurb": {
+        "en": "How much is the apple?",
+        "es": "¿Cuánto cuesta la manzana?"
+      },
+      "kind": "sentences",
+      "vocabIds": [],
+      "sentenceIds": [
+        "price-apple",
+        "price-orange",
+        "price-grapes"
+      ],
+      "skill": "sentence"
+    },
+    {
+      "id": "checkpoint-fruits",
+      "emoji": "🏁",
+      "title": {
+        "en": "Fruit checkpoint",
+        "es": "Punto de frutas"
+      },
+      "blurb": {
+        "en": "A short mix of the fruit words.",
+        "es": "Una mezcla corta de las frutas."
+      },
+      "kind": "review",
+      "vocabIds": [
+        "apple",
+        "grapes",
+        "orange",
+        "fruit"
+      ],
+      "sentenceIds": [
+        "price-apple",
+        "price-grapes"
+      ],
+      "skill": "checkpoint"
     },
     {
       "id": "drinks",
       "emoji": "🥛",
-      "title": { "en": "Drinks", "es": "Bebidas" },
-      "blurb": { "en": "Juice and milk.", "es": "Jugo y leche." },
+      "title": {
+        "en": "Drinks",
+        "es": "Bebidas"
+      },
+      "blurb": {
+        "en": "Juice and milk.",
+        "es": "Jugo y leche."
+      },
       "kind": "vocab",
-      "vocabIds": ["juice", "milk"],
+      "vocabIds": [
+        "juice",
+        "milk"
+      ],
       "sentenceIds": []
+    },
+    {
+      "id": "drink-listen",
+      "emoji": "👂",
+      "title": {
+        "en": "Hear the drinks",
+        "es": "Escucha las bebidas"
+      },
+      "blurb": {
+        "en": "Listen, then tap the drink.",
+        "es": "Escucha y toca la bebida."
+      },
+      "kind": "vocab",
+      "vocabIds": [
+        "juice",
+        "milk"
+      ],
+      "sentenceIds": [],
+      "skill": "listen"
+    },
+    {
+      "id": "drink-spell",
+      "emoji": "🔤",
+      "title": {
+        "en": "Spell the drinks",
+        "es": "Deletrea las bebidas"
+      },
+      "blurb": {
+        "en": "Tap the letters for each drink.",
+        "es": "Toca las letras de cada bebida."
+      },
+      "kind": "writing",
+      "vocabIds": [
+        "juice",
+        "milk"
+      ],
+      "sentenceIds": [],
+      "skill": "spell"
+    },
+    {
+      "id": "drink-write",
+      "emoji": "✍️",
+      "title": {
+        "en": "Write the drinks",
+        "es": "Escribe las bebidas"
+      },
+      "blurb": {
+        "en": "Trace or spell, then type the word.",
+        "es": "Traza o deletrea, y luego escribe."
+      },
+      "kind": "writing",
+      "vocabIds": [
+        "juice",
+        "milk"
+      ],
+      "sentenceIds": [],
+      "skill": "write"
+    },
+    {
+      "id": "pattern-please",
+      "emoji": "🙏",
+      "title": {
+        "en": "Can I have…?",
+        "es": "¿Me da…?"
+      },
+      "blurb": {
+        "en": "Can I have milk, please?",
+        "es": "¿Me da leche, por favor?"
+      },
+      "kind": "sentences",
+      "vocabIds": [],
+      "sentenceIds": [
+        "have-milk",
+        "have-juice",
+        "have-sandwich"
+      ],
+      "skill": "sentence"
+    },
+    {
+      "id": "checkpoint-drinks",
+      "emoji": "🏁",
+      "title": {
+        "en": "Drinks checkpoint",
+        "es": "Punto de bebidas"
+      },
+      "blurb": {
+        "en": "A short mix of the drinks.",
+        "es": "Una mezcla corta de las bebidas."
+      },
+      "kind": "review",
+      "vocabIds": [
+        "juice",
+        "milk"
+      ],
+      "sentenceIds": [
+        "have-milk",
+        "have-juice"
+      ],
+      "skill": "checkpoint"
     },
     {
       "id": "market-meals",
       "emoji": "🍔",
-      "title": { "en": "At the market", "es": "En el mercado" },
+      "title": {
+        "en": "At the market",
+        "es": "En el mercado"
+      },
       "blurb": {
         "en": "Pizza, hamburger, hot dog, and sandwich.",
         "es": "Pizza, hamburguesa, hot dog y sándwich."
       },
       "kind": "vocab",
-      "vocabIds": ["pizza", "hamburger", "hot-dog", "sandwich"],
+      "vocabIds": [
+        "pizza",
+        "hamburger",
+        "hot-dog",
+        "sandwich"
+      ],
       "sentenceIds": []
+    },
+    {
+      "id": "market-listen",
+      "emoji": "👂",
+      "title": {
+        "en": "Hear the market",
+        "es": "Escucha el mercado"
+      },
+      "blurb": {
+        "en": "Listen, then tap the food.",
+        "es": "Escucha y toca la comida."
+      },
+      "kind": "vocab",
+      "vocabIds": [
+        "pizza",
+        "hamburger",
+        "hot-dog",
+        "sandwich"
+      ],
+      "sentenceIds": [],
+      "skill": "listen"
+    },
+    {
+      "id": "market-spell",
+      "emoji": "🔤",
+      "title": {
+        "en": "Spell the market",
+        "es": "Deletrea el mercado"
+      },
+      "blurb": {
+        "en": "Tap the letters for each market food.",
+        "es": "Toca las letras de cada comida."
+      },
+      "kind": "writing",
+      "vocabIds": [
+        "pizza",
+        "hamburger",
+        "hot-dog",
+        "sandwich"
+      ],
+      "sentenceIds": [],
+      "skill": "spell"
+    },
+    {
+      "id": "market-write",
+      "emoji": "✍️",
+      "title": {
+        "en": "Write the market",
+        "es": "Escribe el mercado"
+      },
+      "blurb": {
+        "en": "Trace or spell, then type the word.",
+        "es": "Traza o deletrea, y luego escribe."
+      },
+      "kind": "writing",
+      "vocabIds": [
+        "pizza",
+        "hamburger",
+        "hot-dog",
+        "sandwich"
+      ],
+      "sentenceIds": [],
+      "skill": "write"
+    },
+    {
+      "id": "pattern-want",
+      "emoji": "👉",
+      "title": {
+        "en": "Do you want…?",
+        "es": "¿Quieres…?"
+      },
+      "blurb": {
+        "en": "Do you want pizza?",
+        "es": "¿Quieres pizza?"
+      },
+      "kind": "sentences",
+      "vocabIds": [],
+      "sentenceIds": [
+        "offer-pizza",
+        "offer-hamburger",
+        "offer-sandwich"
+      ],
+      "skill": "sentence"
+    },
+    {
+      "id": "checkpoint-market",
+      "emoji": "🏁",
+      "title": {
+        "en": "Market checkpoint",
+        "es": "Punto del mercado"
+      },
+      "blurb": {
+        "en": "A short mix from the market.",
+        "es": "Una mezcla corta del mercado."
+      },
+      "kind": "review",
+      "vocabIds": [
+        "pizza",
+        "hamburger",
+        "hot-dog",
+        "sandwich"
+      ],
+      "sentenceIds": [
+        "offer-pizza",
+        "offer-hamburger"
+      ],
+      "skill": "checkpoint"
     },
     {
       "id": "on-the-plate",
       "emoji": "🥗",
-      "title": { "en": "On the plate", "es": "En el plato" },
-      "blurb": { "en": "Salad, chicken, and pasta.", "es": "Ensalada, pollo y fideos." },
+      "title": {
+        "en": "On the plate",
+        "es": "En el plato"
+      },
+      "blurb": {
+        "en": "Salad, chicken, and pasta.",
+        "es": "Ensalada, pollo y fideos."
+      },
       "kind": "vocab",
-      "vocabIds": ["salad", "chicken", "pasta"],
+      "vocabIds": [
+        "salad",
+        "chicken",
+        "pasta"
+      ],
       "sentenceIds": []
+    },
+    {
+      "id": "plate-listen",
+      "emoji": "👂",
+      "title": {
+        "en": "Hear the plate",
+        "es": "Escucha el plato"
+      },
+      "blurb": {
+        "en": "Listen, then tap the food.",
+        "es": "Escucha y toca la comida."
+      },
+      "kind": "vocab",
+      "vocabIds": [
+        "salad",
+        "chicken",
+        "pasta"
+      ],
+      "sentenceIds": [],
+      "skill": "listen"
+    },
+    {
+      "id": "plate-spell",
+      "emoji": "🔤",
+      "title": {
+        "en": "Spell the plate",
+        "es": "Deletrea el plato"
+      },
+      "blurb": {
+        "en": "Tap the letters for each plate food.",
+        "es": "Toca las letras de cada comida."
+      },
+      "kind": "writing",
+      "vocabIds": [
+        "salad",
+        "chicken",
+        "pasta"
+      ],
+      "sentenceIds": [],
+      "skill": "spell"
+    },
+    {
+      "id": "plate-write",
+      "emoji": "✍️",
+      "title": {
+        "en": "Write the plate",
+        "es": "Escribe el plato"
+      },
+      "blurb": {
+        "en": "Trace or spell, then type the word.",
+        "es": "Traza o deletrea, y luego escribe."
+      },
+      "kind": "writing",
+      "vocabIds": [
+        "salad",
+        "chicken",
+        "pasta"
+      ],
+      "sentenceIds": [],
+      "skill": "write"
+    },
+    {
+      "id": "plate-sentences",
+      "emoji": "🥗",
+      "title": {
+        "en": "Use it in a sentence",
+        "es": "Úsala en una oración"
+      },
+      "blurb": {
+        "en": "I like salad. Chicken and salad.",
+        "es": "Me gusta la ensalada. Pollo y ensalada."
+      },
+      "kind": "sentences",
+      "vocabIds": [],
+      "sentenceIds": [
+        "like-salad",
+        "chicken-salad",
+        "fruit-salad"
+      ],
+      "skill": "sentence"
+    },
+    {
+      "id": "checkpoint-plate",
+      "emoji": "🏁",
+      "title": {
+        "en": "Plate checkpoint",
+        "es": "Punto del plato"
+      },
+      "blurb": {
+        "en": "A short mix from the plate.",
+        "es": "Una mezcla corta del plato."
+      },
+      "kind": "review",
+      "vocabIds": [
+        "salad",
+        "chicken",
+        "pasta"
+      ],
+      "sentenceIds": [
+        "like-salad",
+        "chicken-salad"
+      ],
+      "skill": "checkpoint"
+    },
+    {
+      "id": "mix-picnic",
+      "emoji": "🧺",
+      "title": {
+        "en": "Picnic mix",
+        "es": "Mezcla de picnic"
+      },
+      "blurb": {
+        "en": "Five foods from different groups.",
+        "es": "Cinco comidas de grupos distintos."
+      },
+      "kind": "vocab",
+      "vocabIds": [
+        "apple",
+        "juice",
+        "sandwich",
+        "fruit",
+        "cookies"
+      ],
+      "sentenceIds": [],
+      "skill": "recognize"
+    },
+    {
+      "id": "mix-lunch",
+      "emoji": "🍽️",
+      "title": {
+        "en": "Lunch mix",
+        "es": "Mezcla del almuerzo"
+      },
+      "blurb": {
+        "en": "Five foods for a lunch plate.",
+        "es": "Cinco comidas para un almuerzo."
+      },
+      "kind": "vocab",
+      "vocabIds": [
+        "chicken",
+        "salad",
+        "milk",
+        "pasta",
+        "orange"
+      ],
+      "sentenceIds": [],
+      "skill": "recognize"
+    },
+    {
+      "id": "mix-basket",
+      "emoji": "🛍️",
+      "title": {
+        "en": "Market basket",
+        "es": "Canasta del mercado"
+      },
+      "blurb": {
+        "en": "Five foods in one basket.",
+        "es": "Cinco comidas en una canasta."
+      },
+      "kind": "vocab",
+      "vocabIds": [
+        "cake",
+        "milk",
+        "pizza",
+        "grapes",
+        "hot-dog"
+      ],
+      "sentenceIds": [],
+      "skill": "recognize"
     },
     {
       "id": "word-review",
       "emoji": "⭐",
-      "title": { "en": "Word review", "es": "Repaso" },
+      "title": {
+        "en": "Word review",
+        "es": "Repaso"
+      },
       "blurb": {
         "en": "All the food words, mixed together.",
         "es": "Todas las palabras de la comida, revueltas."
@@ -226,41 +1553,114 @@
     {
       "id": "menu-sentences",
       "emoji": "📋",
-      "title": { "en": "Menu sentences", "es": "Oraciones del menú" },
+      "title": {
+        "en": "Menu sentences",
+        "es": "Oraciones del menú"
+      },
       "blurb": {
         "en": "Milk and a sandwich. Pasta and orange juice.",
         "es": "Leche y un sándwich. Fideos y jugo de naranja."
       },
       "kind": "sentences",
       "vocabIds": [],
-      "sentenceIds": ["milk-sandwich", "pasta-juice", "chicken-salad", "fruit-salad"]
+      "sentenceIds": [
+        "milk-sandwich",
+        "pasta-juice",
+        "chicken-salad",
+        "fruit-salad"
+      ]
     },
     {
       "id": "i-like",
       "emoji": "💛",
-      "title": { "en": "I like, I want", "es": "Me gusta, quiero" },
-      "blurb": { "en": "I like apples. I want pizza.", "es": "Me gustan las manzanas. Quiero pizza." },
+      "title": {
+        "en": "I like, I want",
+        "es": "Me gusta, quiero"
+      },
+      "blurb": {
+        "en": "I like apples. I want pizza.",
+        "es": "Me gustan las manzanas. Quiero pizza."
+      },
       "kind": "sentences",
       "vocabIds": [],
-      "sentenceIds": ["like-apples", "want-pizza", "like-milk", "want-hamburger", "want-cookies"]
+      "sentenceIds": [
+        "like-apples",
+        "want-pizza",
+        "like-milk",
+        "want-hamburger",
+        "want-cookies"
+      ]
     },
     {
       "id": "write-it",
       "emoji": "✏️",
-      "title": { "en": "Write it", "es": "Escríbelo" },
-      "blurb": { "en": "Write the menu words.", "es": "Escribe las palabras del menú." },
+      "title": {
+        "en": "Write it",
+        "es": "Escríbelo"
+      },
+      "blurb": {
+        "en": "Write the menu words.",
+        "es": "Escribe las palabras del menú."
+      },
       "kind": "writing",
-      "vocabIds": ["milk", "sandwich", "salad", "chicken", "apple"],
-      "sentenceIds": ["milk-sandwich", "fruit-salad"]
+      "vocabIds": [
+        "milk",
+        "sandwich",
+        "salad",
+        "chicken",
+        "apple"
+      ],
+      "sentenceIds": [
+        "milk-sandwich",
+        "fruit-salad"
+      ]
     },
     {
       "id": "my-restaurant",
       "emoji": "🏠",
-      "title": { "en": "My restaurant", "es": "Mi restaurante" },
-      "blurb": { "en": "My restaurant is called…", "es": "Mi restaurante se llama…" },
+      "title": {
+        "en": "My restaurant",
+        "es": "Mi restaurante"
+      },
+      "blurb": {
+        "en": "My restaurant is called…",
+        "es": "Mi restaurante se llama…"
+      },
       "kind": "sentences",
       "vocabIds": [],
-      "sentenceIds": ["my-restaurant", "orange-juice", "fruit-salad"]
+      "sentenceIds": [
+        "my-restaurant",
+        "orange-juice",
+        "fruit-salad"
+      ]
+    },
+    {
+      "id": "market-challenge",
+      "emoji": "🏆",
+      "title": {
+        "en": "Market challenge",
+        "es": "Reto del mercado"
+      },
+      "blurb": {
+        "en": "The last mix before the restaurant bonus.",
+        "es": "La última mezcla antes del restaurante."
+      },
+      "kind": "review",
+      "vocabIds": [
+        "milk",
+        "apple",
+        "pizza",
+        "salad",
+        "chicken"
+      ],
+      "sentenceIds": [
+        "have-milk",
+        "price-apple",
+        "offer-pizza",
+        "like-salad",
+        "chicken-salad"
+      ],
+      "skill": "checkpoint"
     }
   ]
 }

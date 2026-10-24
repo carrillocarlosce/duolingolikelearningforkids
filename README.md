@@ -97,9 +97,22 @@ To add a unit:
 3. Replace the words, sentences, and lessons. A lesson `id` is the progress key stored on the tablet. Do not rename an id that tablets already saved.
 4. Import the file in `registry.ts` and add it to `unitFiles`.
 
-To add a lesson inside a unit, append an object to `lessons`. Give it a new `id`, an emoji, titles, a `kind` (`vocab`, `sentences`, `writing`, or `review`), and the `vocabIds` and `sentenceIds` it uses. The map opens lessons in that order. The first is open, and each later lesson opens when the one before it is finished.
+To add a lesson inside a unit, append an object to `lessons`. Give it a new `id`, an emoji, titles, a `kind` (`vocab`, `sentences`, `writing`, or `review`), and the `vocabIds` and `sentenceIds` it uses. Optional `skill` (`recognize`, `listen`, `spell`, `write`, `sentence`, or `checkpoint`) makes the round only that step. Without it, the lesson mixes the exercises for its kind. The map opens lessons in that order. The first is open, and each later lesson opens when the one before it is finished.
 
-The map still teaches `unit-7`. Its lesson ids are the same as before this file, so progress already stored in IndexedDB still lines up.
+The map still teaches `unit-7`. Do not rename a lesson id that tablets already saved.
+
+## Unit 7 lesson ladder
+
+Each food group still starts with its original lesson. That lesson is the recognize step, and its id is unchanged, so a finished lesson stored in IndexedDB stays finished. After it, the path adds a shorter step for the same words: listen and choose, then spell, then write, then a sentence. A checkpoint sits at the end of the group. Picnic, lunch, and basket lessons mix four or five words from different groups. The last lesson on the path is the market challenge. The restaurant bonus stays the button on the map.
+
+New lessons are inserted between the old ids. A child who already finished a later lesson still starts the new step that now comes next. Saved ids are not renamed.
+
+Sentence patterns on the path, in English and Spanish, with word tiles and a scene:
+
+- I like … / I don't like …
+- Can I have …, please?
+- How much is …?
+- Do you want …?
 
 ## Scripts
 

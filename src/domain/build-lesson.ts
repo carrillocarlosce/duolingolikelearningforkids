@@ -51,7 +51,10 @@ function knownIds(lessonIndex: number): string[] {
   for (let index = 0; index <= lessonIndex; index += 1) {
     const lesson = lessonCatalog[index];
     if (!lesson) continue;
-    if (lesson.kind === "review") vocabulary.forEach((item) => ids.add(item.id));
+    if (lesson.kind === "review") {
+      const reviewIds = lesson.vocabIds.length > 0 ? lesson.vocabIds : vocabulary.map((item) => item.id);
+      reviewIds.forEach((id) => ids.add(id));
+    }
     lesson.vocabIds.forEach((id) => ids.add(id));
     lesson.sentenceIds.forEach((id) => {
       getSentence(id).imageIds.forEach((imageId) => ids.add(imageId));
@@ -70,7 +73,13 @@ function choices(correctId: string, pool: readonly string[], rng: () => number):
 }
 
 function focusItems(lesson: LessonSummary, rng: () => number): VocabItem[] {
-  if (lesson.kind === "review") return shuffled([...vocabulary], rng).slice(0, 6);
+  if (lesson.kind === "review") {
+    const reviewIds = lesson.vocabIds.length > 0 ? lesson.vocabIds : vocabulary.map((item) => item.id);
+    return shuffled(
+      reviewIds.map((id) => getVocab(id)),
+      rng,
+    ).slice(0, 6);
+  }
   if (lesson.vocabIds.length > 0) return lesson.vocabIds.map((id) => getVocab(id));
   const ids = [...new Set(lesson.sentenceIds.flatMap((id) => [...getSentence(id).imageIds]))];
   return ids.map((id) => getVocab(id));
@@ -332,6 +341,82 @@ export interface LessonBuildOptions {
   letterTracing?: boolean;
 }
 
+/** A focused round for lessons that name a skill. Other lessons keep the mixed round for their kind. */
+function skillExercises(
+  lesson: LessonSummary,
+  words: readonly VocabItem[],
+  lines: readonly Sentence[],
+  direction: Direction,
+  prompt: Lang,
+  answer: Lang,
+  translating: boolean,
+  pool: readonly string[],
+  rng: () => number,
+  options: LessonBuildOptions,
+): Exercise[] | null {
+  if (!lesson.skill) return null;
+  const steps: Exercise[] = [];
+  switch (lesson.skill) {
+    case "recognize":
+      words.slice(0, 5).forEach((word) => steps.push(pictureWord(word, prompt, answer, translating, pool, rng)));
+      words.slice(0, 2).forEach((word) => steps.push(wordPicture(word, prompt, pool, rng)));
+      if (words[0]) steps.unshift(sayWord(words[0], answer));
+      break;
+    case "listen":
+      words.slice(0, 5).forEach((word) =>
+        steps.push(
+          lines.length > 0
+            ? listenForSentence(word, lines, prompt, answer, pool, rng)
+            : listenWord(word, prompt, answer, pool, rng),
+        ),
+      );
+      if (lines[0]) steps.unshift(saySentence(lines[0], answer));
+      else if (words[0]) steps.unshift(sayWord(words[0], answer));
+      break;
+    case "spell":
+      words.slice(0, 5).forEach((word) => steps.push(spellWord(word, prompt, answer, translating, rng)));
+      if (words[0]) steps.unshift(sayWord(words[0], answer));
+      break;
+    case "write": {
+      const traceLetters = options.letterTracing !== false;
+      words
+        .slice(0, 4)
+        .forEach((word) =>
+          steps.push(traceLetters ? traceWord(word, answer) : spellWord(word, prompt, answer, translating, rng)),
+        );
+      words.slice(0, 2).forEach((word) => steps.push(typeWord(word, prompt, answer, translating)));
+      if (words[0]) steps.unshift(sayWord(words[0], answer));
+      break;
+    }
+    case "sentence":
+      lines.slice(0, 3).forEach((line) => steps.push(buildSentence(line, answer, pool, rng)));
+      lines.slice(0, 2).forEach((line) => steps.push(typeSentence(line, prompt, answer, translating)));
+      if (lines[0]) steps.unshift(saySentence(lines[0], answer));
+      break;
+    case "checkpoint":
+      words
+        .slice(0, 3)
+        .forEach((word) => steps.push(pictureForSentence(word, lines, prompt, answer, translating, pool, rng)));
+      words.slice(0, 2).forEach((word) =>
+        steps.push(
+          lines.length > 0
+            ? listenForSentence(word, lines, prompt, answer, pool, rng)
+            : listenWord(word, prompt, answer, pool, rng),
+        ),
+      );
+      if (lines[0]) steps.push(buildSentence(lines[0], answer, pool, rng));
+      else if (words[0]) steps.push(typeWord(words[0], prompt, answer, translating));
+      if (lines[0]) steps.unshift(saySentence(lines[0], answer));
+      else if (words[0]) steps.unshift(sayWord(words[0], answer));
+      break;
+    default: {
+      const unexpected: never = lesson.skill;
+      throw new Error(`Unknown lesson skill: ${String(unexpected)}`);
+    }
+  }
+  return steps;
+}
+
 /** Practice round for one lesson. The say-it step is hidden when the mic or network is missing. */
 export function buildLessonExercises(
   lessonId: string,
@@ -346,6 +431,10 @@ export function buildLessonExercises(
   const words = focusItems(lesson, rng);
   const lines = lesson.sentenceIds.map((id) => getSentence(id));
   const { prompt, answer, translating } = langs(direction);
+  const skilled = skillExercises(lesson, words, lines, direction, prompt, answer, translating, pool, rng, options);
+  if (skilled) {
+    return skilled.map((step, index) => ({ ...step, id: `${lessonId}-${index}-${step.type}` }));
+  }
   const steps: Exercise[] = [];
 
   if (lesson.kind === "sentences") {
