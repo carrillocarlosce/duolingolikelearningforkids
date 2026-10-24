@@ -2,6 +2,7 @@ import { acceptedForms, getVocab, vocabulary, type VocabItem } from "@/domain/co
 import {
   acceptedSentenceForms,
   getSentence,
+  otherLang,
   sentenceTokens,
   type Sentence,
 } from "@/domain/content/sentences";
@@ -82,7 +83,7 @@ function pictureWord(
   translating: boolean,
   pool: readonly string[],
   rng: () => number,
-): Exercise {
+): Extract<Exercise, { type: "picture-word" }> {
   return {
     id: "",
     type: "picture-word",
@@ -111,6 +112,7 @@ function typeWord(item: VocabItem, prompt: Lang, answer: Lang, translating: bool
   return {
     id: "",
     type: "type",
+    promptLang: translating ? prompt : answer,
     answerLang: answer,
     promptText: translating ? item[prompt] : "",
     hidePromptText: !translating,
@@ -121,15 +123,21 @@ function typeWord(item: VocabItem, prompt: Lang, answer: Lang, translating: bool
 }
 
 function typeSentence(sentence: Sentence, prompt: Lang, answer: Lang, translating: boolean): Exercise {
+  const sourceLang = otherLang(answer);
   return {
     id: "",
     type: "type",
+    sentenceId: sentence.id,
+    promptLang: translating ? prompt : answer,
     answerLang: answer,
+    sourceLang,
+    sourceText: sentence[sourceLang],
     promptText: translating ? sentence[prompt] : sentence[answer],
     hidePromptText: false,
-    speakText: translating ? sentence[prompt] : sentence[answer],
+    speakText: sentence[answer],
     accepted: acceptedSentenceForms(sentence, answer),
-    emoji: sentence.imageIds.map((id) => getVocab(id).emoji).join(""),
+    emoji: "",
+    scene: sentence.scene,
   };
 }
 
@@ -139,13 +147,12 @@ function normalizeToken(token: string): string {
 
 function buildSentence(
   sentence: Sentence,
-  prompt: Lang,
   answer: Lang,
-  translating: boolean,
   pool: readonly string[],
   rng: () => number,
 ): Exercise {
   const answerTokens = [...sentenceTokens(sentence, answer)];
+  const sourceLang = otherLang(answer);
   const extras = shuffled(
     pool
       .map((id) => getVocab(id)[answer])
@@ -163,15 +170,17 @@ function buildSentence(
     id: "",
     type: "build",
     sentenceId: sentence.id,
-    promptLang: prompt,
+    promptLang: sourceLang,
     answerLang: answer,
-    promptText: sentence[prompt],
-    showPromptText: translating || answerTokens.length > 5,
+    sourceLang,
+    sourceText: sentence[sourceLang],
+    promptText: sentence[sourceLang],
+    showPromptText: true,
     speakText: sentence[answer],
     tiles,
     answerTokens,
     answerText: sentence[answer],
-    emoji: sentence.imageIds.map((id) => getVocab(id).emoji).join(""),
+    scene: sentence.scene,
   };
 }
 
@@ -180,7 +189,7 @@ function traceWord(item: VocabItem, lang: Lang): Exercise {
     id: "",
     type: "trace",
     word: item[lang],
-    lang,
+    answerLang: lang,
     emoji: item.emoji,
   };
 }
@@ -212,13 +221,30 @@ function spellWord(item: VocabItem, prompt: Lang, answer: Lang, translating: boo
   };
 }
 
+function saySentence(sentence: Sentence, answer: Lang): Exercise {
+  const sourceLang = otherLang(answer);
+  return {
+    id: "",
+    type: "say",
+    sentenceId: sentence.id,
+    promptText: sentence[answer],
+    audioText: sentence[answer],
+    sourceText: sentence[sourceLang],
+    sourceLang,
+    answerLang: answer,
+    accepted: acceptedSentenceForms(sentence, answer),
+    emoji: "",
+    scene: sentence.scene,
+  };
+}
+
 function sayWord(item: VocabItem, lang: Lang): Exercise {
   return {
     id: "",
     type: "say",
     promptText: item[lang],
     audioText: item[lang],
-    lang,
+    answerLang: lang,
     accepted: acceptedForms(item, lang),
     emoji: item.emoji,
   };
@@ -230,7 +256,7 @@ function listenWord(
   answer: Lang,
   pool: readonly string[],
   rng: () => number,
-): Exercise {
+): Extract<Exercise, { type: "listen" }> {
   return {
     id: "",
     type: "listen",
@@ -240,6 +266,52 @@ function listenWord(
     answerLang: answer,
     audioText: item[prompt],
     answerText: item[answer],
+  };
+}
+
+function sentenceForWord(lines: readonly Sentence[], wordId: string): Sentence | undefined {
+  return lines.find((line) => line.cloze && line.imageIds.includes(wordId));
+}
+
+function pictureForSentence(
+  item: VocabItem,
+  lines: readonly Sentence[],
+  prompt: Lang,
+  answer: Lang,
+  translating: boolean,
+  pool: readonly string[],
+  rng: () => number,
+): Exercise {
+  const base = pictureWord(item, prompt, answer, translating, pool, rng);
+  const line = sentenceForWord(lines, item.id);
+  if (!line?.cloze || !line.scene.mascot) return base;
+  return {
+    ...base,
+    sentenceId: line.id,
+    promptLang: answer,
+    promptText: line.cloze[answer],
+    showPromptWord: true,
+    scene: { mascot: line.scene.mascot, emojis: [] },
+  };
+}
+
+function listenForSentence(
+  item: VocabItem,
+  lines: readonly Sentence[],
+  prompt: Lang,
+  answer: Lang,
+  pool: readonly string[],
+  rng: () => number,
+): Exercise {
+  const base = listenWord(item, prompt, answer, pool, rng);
+  const line = sentenceForWord(lines, item.id);
+  if (!line?.cloze || !line.scene.mascot) return base;
+  return {
+    ...base,
+    sentenceId: line.id,
+    audioText: line[prompt],
+    clozeText: line.cloze[answer],
+    scene: { mascot: line.scene.mascot, emojis: [] },
   };
 }
 
@@ -277,8 +349,10 @@ export function buildLessonExercises(
   const steps: Exercise[] = [];
 
   if (lesson.kind === "sentences") {
-    words.slice(0, 2).forEach((word) => steps.push(pictureWord(word, prompt, answer, translating, pool, rng)));
-    lines.slice(0, 3).forEach((line) => steps.push(buildSentence(line, prompt, answer, translating, pool, rng)));
+    words.slice(0, 2).forEach((word) =>
+      steps.push(pictureForSentence(word, lines, prompt, answer, translating, pool, rng)),
+    );
+    lines.slice(0, 3).forEach((line) => steps.push(buildSentence(line, answer, pool, rng)));
     lines.slice(0, 2).forEach((line) => steps.push(typeSentence(line, prompt, answer, translating)));
     if (words.length >= 2) steps.push(matchPairs(words, direction, rng));
   } else if (lesson.kind === "writing") {
@@ -287,7 +361,7 @@ export function buildLessonExercises(
       steps.push(traceLetters ? traceWord(word, answer) : spellWord(word, prompt, answer, translating, rng));
     });
     words.slice(0, 3).forEach((word) => steps.push(typeWord(word, prompt, answer, translating)));
-    if (lines[0]) steps.push(buildSentence(lines[0], prompt, answer, translating, pool, rng));
+    if (lines[0]) steps.push(buildSentence(lines[0], answer, pool, rng));
     if (lines[1] ?? lines[0]) steps.push(typeSentence((lines[1] ?? lines[0]) as Sentence, prompt, answer, translating));
     words.slice(0, 2).forEach((word) => steps.push(pictureWord(word, prompt, answer, translating, pool, rng)));
   } else {
@@ -297,8 +371,15 @@ export function buildLessonExercises(
     if (words.length >= 2) steps.push(matchPairs(words, direction, rng));
   }
 
-  if (words[0]) steps.unshift(sayWord(words[0], answer));
-  words.slice(0, 2).forEach((word) => steps.push(listenWord(word, prompt, answer, pool, rng)));
+  if (lesson.kind === "sentences" && lines[0]) steps.unshift(saySentence(lines[0], answer));
+  else if (words[0]) steps.unshift(sayWord(words[0], answer));
+  words.slice(0, 2).forEach((word) =>
+    steps.push(
+      lesson.kind === "sentences"
+        ? listenForSentence(word, lines, prompt, answer, pool, rng)
+        : listenWord(word, prompt, answer, pool, rng),
+    ),
+  );
 
   return steps.map((step, index) => ({ ...step, id: `${lessonId}-${index}-${step.type}` }));
 }

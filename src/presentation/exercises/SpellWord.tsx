@@ -6,7 +6,6 @@ import type { Exercise } from "@/domain/exercises";
 import type { Lang } from "@/domain/language";
 import { spellMatches } from "@/domain/session";
 import { SPEECH_RATE_NORMAL } from "@/domain/speech";
-import { answerHelper, WritingBadge } from "@/presentation/components/WritingBadge";
 import type { Copy } from "@/presentation/i18n";
 
 function langTag(lang: Lang): string {
@@ -16,7 +15,6 @@ function langTag(lang: Lang): string {
 export function SpellWord({
   exercise,
   t,
-  uiLang,
   speech,
   disabled,
   onDraft,
@@ -25,7 +23,6 @@ export function SpellWord({
 }: {
   exercise: Extract<Exercise, { type: "spell" }>;
   t: Copy;
-  uiLang: Lang;
   speech: SpeechSynthPort;
   disabled: boolean;
   onDraft: (tokens: string[] | null) => void;
@@ -60,13 +57,6 @@ export function SpellWord({
 
   return (
     <div className="flex flex-col items-center gap-4" lang={tag}>
-      <WritingBadge
-        kind="spell"
-        lang={exercise.answerLang}
-        speech={speech}
-        listenLabel={t.listen}
-        helper={answerHelper(uiLang, exercise.answerLang, t)}
-      />
       <h2 className="text-center text-2xl font-bold">{t.spell}</h2>
       <p className="text-6xl" aria-hidden="true">
         {exercise.emoji}

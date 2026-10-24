@@ -1,9 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { SpeechSynthPort } from "@/application/ports";
 import type { Exercise } from "@/domain/exercises";
-import type { Lang } from "@/domain/language";
 import {
   canvasBitmapSize,
   coverAlongSegment,
@@ -17,7 +15,6 @@ import {
   strokesForLetter,
   type Point,
 } from "@/domain/letter-strokes";
-import { answerHelper, WritingBadge } from "@/presentation/components/WritingBadge";
 import type { Copy } from "@/presentation/i18n";
 
 type TraceProgress = {
@@ -32,15 +29,11 @@ type Guide = { points: Point[]; checkpoints: Point[] };
 export function TraceWord({
   exercise,
   t,
-  uiLang,
-  speech,
   disabled,
   onSolved,
 }: {
   exercise: Extract<Exercise, { type: "trace" }>;
   t: Copy;
-  uiLang: Lang;
-  speech: SpeechSynthPort;
   disabled: boolean;
   onSolved: () => void;
 }) {
@@ -281,19 +274,16 @@ export function TraceWord({
   const checkpointCount = guide ? sampleCheckpoints(guide.points).length : 0;
 
   return (
-    <div className="flex flex-col items-center gap-3" lang={exercise.lang === "es" ? "es-PE" : "en"}>
-      <WritingBadge
-        kind="trace"
-        lang={exercise.lang}
-        speech={speech}
-        listenLabel={t.listen}
-        helper={answerHelper(uiLang, exercise.lang, t)}
-      />
+    <div className="flex flex-col items-center gap-3" lang={exercise.answerLang === "es" ? "es-PE" : "en"}>
       <h2 className="text-center text-2xl font-bold">{t.trace}</h2>
       <p className="text-5xl" aria-hidden="true">
         {exercise.emoji}
       </p>
-      <p className="text-center text-3xl font-bold tracking-wide" aria-label={exercise.word}>
+      <p
+        lang={exercise.answerLang}
+        className="text-center text-4xl font-bold tracking-wide"
+        aria-label={exercise.word}
+      >
         {letters.map((glyph, glyphIndex) => (
           <span
             key={`${glyph}-${glyphIndex}`}
@@ -313,6 +303,7 @@ export function TraceWord({
       <div className="w-full max-w-[20rem] overscroll-none">
         <canvas
           ref={canvasRef}
+          lang={exercise.answerLang}
           className="trace-pad aspect-square w-full rounded-[2rem] bg-white shadow-[0_4px_0_#e4e4e4]"
           style={{ touchAction: "none" }}
           aria-label={`${t.trace} ${letter}`}

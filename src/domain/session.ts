@@ -1,4 +1,4 @@
-import { gradeText } from "@/domain/answers";
+import { gradeText, normalizeAnswer } from "@/domain/answers";
 import type { Answer, Exercise, Grade, GradeStatus } from "@/domain/exercises";
 import { starsForMistakes, xpForStatus, XP_LESSON_BONUS, XP_PERFECT_BONUS } from "@/domain/scoring";
 
@@ -55,12 +55,16 @@ export function gradeExercise(exercise: Exercise, answer: Answer): Grade {
         : { status: "incorrect", canonical: exercise.promptText };
     case "build":
       if (answer.type !== "tokens") return { status: "incorrect", canonical: exercise.answerText };
-      return tokensMatch(answer.tokens, exercise.answerTokens)
-        ? { status: "correct", canonical: exercise.answerText }
-        : { status: "incorrect", canonical: exercise.answerText };
+      if (tokensMatch(answer.tokens, exercise.answerTokens)) {
+        return { status: "correct", canonical: exercise.answerText };
+      }
+      if (isOrderedSubset(answer.tokens, exercise.answerTokens)) {
+        return { status: "almost", canonical: exercise.answerText, incomplete: true };
+      }
+      return { status: "incorrect", canonical: exercise.answerText };
     case "type":
       if (answer.type !== "text") return { status: "incorrect", canonical: exercise.accepted[0] };
-      return gradeText(answer.text, exercise.accepted);
+      return gradeTyped(exercise, answer.text);
     case "say":
       if (answer.type !== "speech") return { status: "incorrect", canonical: exercise.accepted[0] };
       if (!answer.transcript.trim()) return { status: "skipped", canonical: exercise.accepted[0] };
@@ -90,6 +94,39 @@ export function gradeExercise(exercise: Exercise, answer: Answer): Grade {
 function tokensMatch(given: readonly string[], expected: readonly string[]): boolean {
   if (given.length !== expected.length) return false;
   return given.every((token, index) => normalizeToken(token) === normalizeToken(expected[index] ?? ""));
+}
+
+/** True when every given token appears, in order, inside the sentence, and at least one token is still missing. */
+function isOrderedSubset(given: readonly string[], expected: readonly string[]): boolean {
+  if (given.length === 0 || given.length >= expected.length) return false;
+  let cursor = 0;
+  for (const token of given) {
+    const normalized = normalizeToken(token);
+    let found = false;
+    while (cursor < expected.length) {
+      const candidate = expected[cursor] ?? "";
+      cursor += 1;
+      if (normalizeToken(candidate) === normalized) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) return false;
+  }
+  return true;
+}
+
+function gradeTyped(exercise: Extract<Exercise, { type: "type" }>, text: string): Grade {
+  const graded = gradeText(text, exercise.accepted);
+  const canonical = graded.canonical ?? exercise.accepted[0] ?? "";
+  if (exercise.sentenceId && graded.status === "incorrect" && canonical) {
+    const given = normalizeAnswer(text).split(" ").filter((token) => token.length > 0);
+    const expected = normalizeAnswer(canonical).split(" ").filter((token) => token.length > 0);
+    if (isOrderedSubset(given, expected)) {
+      return { status: "almost", canonical, incomplete: true };
+    }
+  }
+  return graded;
 }
 
 function normalizeToken(token: string): string {
