@@ -5,16 +5,19 @@ import { getLessonPath, type LessonPathItem } from "@/application/get-lesson-pat
 import { loadLearnerState } from "@/application/load-learner-state";
 import type { AppServices } from "@/application/ports";
 import { recordLessonResult } from "@/application/record-lesson-result";
+import { saveRestaurant } from "@/application/save-restaurant";
 import { createAppServices, todayIsoDate } from "@/composition/create-services";
 import type { AudioLevels } from "@/domain/audio-settings";
 import type { Direction } from "@/domain/language";
 import { letterTracingEnabled, type LetterTracingMode } from "@/domain/letter-tracing";
-import { completedLessonIds, withAudioSettings, type Profile } from "@/domain/progress";
+import { completedLessonIds, withAudioSettings, withRestaurant, type Profile } from "@/domain/progress";
+import type { RestaurantPlan } from "@/domain/restaurant";
 import { SPEECH_RATE_NORMAL } from "@/domain/speech";
 import { copy } from "@/presentation/i18n";
 import { PipoMark } from "@/presentation/components/PipoMark";
 import { LessonMap } from "@/presentation/screens/LessonMap";
 import { LessonPlay } from "@/presentation/screens/LessonPlay";
+import { RestaurantPlay } from "@/presentation/screens/RestaurantPlay";
 import { SettingsPanel } from "@/presentation/screens/SettingsPanel";
 
 export function App() {
@@ -24,6 +27,7 @@ export function App() {
   const [lessonId, setLessonId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [restaurantOpen, setRestaurantOpen] = useState(false);
   const profileRef = useRef<Profile | null>(null);
   const saveQueue = useRef(Promise.resolve());
 
@@ -126,6 +130,25 @@ export function App() {
     persist({ ...current, letterTracing: mode });
   }
 
+  function saveMenu(plan: RestaurantPlan) {
+    const current = profileRef.current;
+    if (!services || !current) return;
+    const optimistic = withRestaurant(current, plan);
+    if (!optimistic.restaurant) return;
+    profileRef.current = optimistic;
+    setProfile(optimistic);
+    const progress = services.progress;
+    const savedPlan = optimistic.restaurant;
+    saveQueue.current = saveQueue.current
+      .then(async () => {
+        const latest = profileRef.current ?? optimistic;
+        const next = await saveRestaurant(progress, latest, savedPlan);
+        profileRef.current = next;
+        setProfile(next);
+      })
+      .catch(() => undefined);
+  }
+
   return (
     <>
       {toast ? (
@@ -133,7 +156,18 @@ export function App() {
           {toast}
         </p>
       ) : null}
-      {selected ? (
+      {restaurantOpen ? (
+        <RestaurantPlay
+          direction={profile.direction}
+          uiLang={profile.uiLang}
+          saved={profile.restaurant}
+          t={t}
+          speech={services.speech}
+          sound={services.sound}
+          onExit={() => setRestaurantOpen(false)}
+          onSave={saveMenu}
+        />
+      ) : selected ? (
         <LessonPlay
           lesson={selected}
           direction={profile.direction}
@@ -159,6 +193,8 @@ export function App() {
             onDirection={(direction) => void changeDirection(direction)}
             onSelect={setLessonId}
             onOpenSettings={() => setSettingsOpen(true)}
+            onOpenRestaurant={() => setRestaurantOpen(true)}
+            restaurantReady={profile.restaurant !== null}
             onPress={() => services.sound.play("button")}
           />
         </>

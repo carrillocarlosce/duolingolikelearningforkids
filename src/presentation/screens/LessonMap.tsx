@@ -15,6 +15,8 @@ type LessonMapProps = {
   onDirection: (direction: Direction) => void;
   onSelect: (id: string) => void;
   onOpenSettings: () => void;
+  onOpenRestaurant: () => void;
+  restaurantReady: boolean;
   onPress: () => void;
 };
 
@@ -26,6 +28,8 @@ export function LessonMap({
   onDirection,
   onSelect,
   onOpenSettings,
+  onOpenRestaurant,
+  restaurantReady,
   onPress,
 }: LessonMapProps) {
   return (
@@ -60,9 +64,36 @@ export function LessonMap({
             )}
           </button>
         </div>
-        <p className="mt-4 rounded-2xl bg-cream px-4 py-3 text-lg leading-snug text-ink">
+        <p id="unit-challenge" className="mt-4 rounded-2xl bg-cream px-4 py-3 text-lg leading-snug text-ink">
           {t.challenge}
         </p>
+        <button
+          type="button"
+          aria-describedby="unit-challenge"
+          onClick={() => {
+            onPress();
+            onOpenRestaurant();
+          }}
+          className="mt-3 flex w-full items-center gap-3 rounded-2xl bg-sun px-4 py-3 text-left text-ink shadow-[0_4px_0_#e6a800] transition active:translate-y-1 active:shadow-none"
+        >
+          <span className="text-3xl" aria-hidden="true" draggable={false}>
+            🍽️
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-lg font-bold leading-tight">{t.restaurant}</span>
+            <span className="block text-sm font-semibold leading-tight">
+              {restaurantReady ? t.restaurantReady : t.restaurantForMom}
+            </span>
+          </span>
+          {restaurantReady ? (
+            <span
+              className="grid size-8 shrink-0 place-items-center rounded-full bg-white text-lg font-bold text-leaf-dark"
+              aria-hidden="true"
+            >
+              ✓
+            </span>
+          ) : null}
+        </button>
         <p className="mt-4 text-sm font-bold uppercase tracking-wide text-sky">{t.practiceHow}</p>
         <div className="mt-2 grid grid-cols-4 gap-2">
           {directions.map((option) => (

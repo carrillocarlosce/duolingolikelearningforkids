@@ -1,6 +1,7 @@
 import { readAudioLevels, type AudioLevels } from "@/domain/audio-settings";
 import type { Direction, Lang } from "@/domain/language";
 import { readLetterTracing, type LetterTracingMode } from "@/domain/letter-tracing";
+import { readRestaurant, type RestaurantPlan } from "@/domain/restaurant";
 import { MAX_HEARTS } from "@/domain/scoring";
 
 export interface Profile extends AudioLevels {
@@ -15,6 +16,8 @@ export interface Profile extends AudioLevels {
   direction: Direction;
   /** "auto" is off on a phone and on for a tablet or computer. */
   letterTracing: LetterTracingMode;
+  /** Name and healthy menu for James's mom. Null until the child saves one. */
+  restaurant: RestaurantPlan | null;
 }
 
 export interface LessonProgress {
@@ -45,6 +48,7 @@ export function freshProfile(today: string): Profile {
     uiLang: "es",
     direction: "en",
     letterTracing: "auto",
+    restaurant: null,
     ...readAudioLevels({}),
   };
 }
@@ -69,7 +73,16 @@ export function normalizeProfile(input: unknown, today: string): Profile {
     direction: isDirection(raw.direction) ? raw.direction : base.direction,
     letterTracing: readLetterTracing(raw.letterTracing),
     ...levels,
+    restaurant: readRestaurant(raw.restaurant),
   };
+}
+
+export function withRestaurant(
+  profile: Profile,
+  plan: { nameItemId: string; menuIds: readonly string[] } | null,
+): Profile {
+  if (plan === null) return { ...profile, restaurant: null };
+  return { ...profile, restaurant: readRestaurant(plan) };
 }
 
 export function withAudioSettings(profile: Profile, patch: Partial<AudioLevels>): Profile {
