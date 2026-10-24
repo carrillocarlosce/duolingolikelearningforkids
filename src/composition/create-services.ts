@@ -1,5 +1,6 @@
 import type { AppServices, ProgressRepository } from "@/application/ports";
 import { freshProfile } from "@/domain/progress";
+import { WebAudioEffects } from "@/infrastructure/audio/web-audio-effects";
 import { localISODate } from "@/infrastructure/clock";
 import { WebSpeechRecognition } from "@/infrastructure/speech/web-speech-recognition";
 import { WebSpeechSynth } from "@/infrastructure/speech/web-speech-synth";
@@ -33,5 +34,6 @@ export async function createAppServices(): Promise<AppServices> {
     persistent: progress.persistent,
     speech: new WebSpeechSynth(),
     recognition: new WebSpeechRecognition(),
+    sound: new WebAudioEffects(),
   };
 }

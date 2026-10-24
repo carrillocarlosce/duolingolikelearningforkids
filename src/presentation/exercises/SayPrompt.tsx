@@ -13,6 +13,7 @@ export function SayPrompt({
   recognition,
   disabled,
   onResult,
+  onMic,
 }: {
   exercise: Extract<Exercise, { type: "say" }>;
   t: Copy;
@@ -20,6 +21,7 @@ export function SayPrompt({
   recognition: SpeechRecognitionPort;
   disabled: boolean;
   onResult: (transcript: string) => void;
+  onMic: () => void;
 }) {
   const [listening, setListening] = useState(false);
   const [offline, setOffline] = useState(() => typeof navigator !== "undefined" && navigator.onLine === false);
@@ -50,6 +52,7 @@ export function SayPrompt({
 
   async function talk() {
     if (disabled || listening || offline) return;
+    onMic();
     setListening(true);
     const transcript = await recognition.listen(exercise.lang);
     setListening(false);

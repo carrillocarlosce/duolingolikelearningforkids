@@ -104,11 +104,13 @@ export function MatchPairs({
   t,
   disabled,
   onSolved,
+  onEffect,
 }: {
   exercise: Extract<Exercise, { type: "match" }>;
   t: Copy;
   disabled: boolean;
   onSolved: () => void;
+  onEffect: (effect: "tap" | "select" | "wrong") => void;
 }) {
   const [picked, setPicked] = useState<string | null>(null);
   const [done, setDone] = useState<string[]>([]);
@@ -124,9 +126,12 @@ export function MatchPairs({
       if (!solved.current && next.length === exercise.left.length) {
         solved.current = true;
         onSolved();
+      } else {
+        onEffect("select");
       }
       return;
     }
+    onEffect("wrong");
     setShake(true);
     window.setTimeout(() => {
       setShake(false);
@@ -145,7 +150,10 @@ export function MatchPairs({
               type="button"
               disabled={disabled || done.includes(side.pairId)}
               aria-pressed={picked === side.pairId}
-              onClick={() => setPicked(side.pairId)}
+              onClick={() => {
+                onEffect("tap");
+                setPicked(side.pairId);
+              }}
               className={[
                 "min-h-16 rounded-2xl border-2 px-3 py-3 text-xl font-bold",
                 done.includes(side.pairId) ? "border-leaf bg-leaf/15" : "bg-white",
@@ -185,15 +193,18 @@ export function BuildSentence({
   t,
   disabled,
   onDraft,
+  onEffect,
 }: {
   exercise: Extract<Exercise, { type: "build" }>;
   t: Copy;
   disabled: boolean;
   onDraft: (tokens: string[] | null) => void;
+  onEffect: (effect: "tap") => void;
 }) {
   const [used, setUsed] = useState<number[]>([]);
 
   function update(next: number[]) {
+    onEffect("tap");
     setUsed(next);
     const tokens = next.map((index) => exercise.tiles[index] ?? "");
     onDraft(tokens.length > 0 ? tokens : null);

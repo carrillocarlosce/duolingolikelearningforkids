@@ -25,6 +25,7 @@ export function App() {
     createAppServices().then(async (next) => {
       const loaded = await loadLearnerState(next.progress, todayIsoDate());
       if (cancelled) return;
+      next.sound.setEnabled(loaded.profile.sound);
       setServices(next);
       setProfile(loaded.profile);
       setNodes(getLessonPath(completedLessonIds(loaded.progress)));
@@ -61,7 +62,9 @@ export function App() {
   const selected = nodes.find((node) => node.id === lessonId) ?? null;
 
   async function finishLesson(id: string, summary: { xp: number; stars: 1 | 2 | 3 }) {
-    if (!services) return;
+    if (!services || !profile) return;
+    const streakBefore = profile.streak;
+    const unlockedBefore = nodes.filter((node) => node.unlocked).length;
     const result = await recordLessonResult(services.progress, {
       lessonId: id,
       xpAwarded: summary.xp,
@@ -70,9 +73,25 @@ export function App() {
       today: todayIsoDate(),
     });
     const progress = await services.progress.getLessonProgress();
+    const nextNodes = getLessonPath(completedLessonIds(progress));
     setProfile(result.profile);
-    setNodes(getLessonPath(completedLessonIds(progress)));
+    setNodes(nextNodes);
+    if (result.profile.streak > streakBefore) {
+      window.setTimeout(() => services.sound.play("sparkle"), 1100);
+    }
+    if (nextNodes.filter((node) => node.unlocked).length > unlockedBefore) {
+      window.setTimeout(() => services.sound.play("unlock"), 1500);
+    }
     setToast(copy[result.profile.uiLang].saved);
+  }
+
+  async function toggleSound() {
+    if (!services || !profile) return;
+    const next = { ...profile, sound: !profile.sound };
+    setProfile(next);
+    services.sound.setEnabled(next.sound);
+    await services.progress.saveProfile(next);
+    if (next.sound) services.sound.play("button");
   }
 
   async function changeDirection(direction: Direction) {
@@ -96,6 +115,7 @@ export function App() {
           t={t}
           speech={services.speech}
           recognition={services.recognition}
+          sound={services.sound}
           onExit={() => setLessonId(null)}
           onFinished={(summary) => void finishLesson(selected.id, summary)}
         />
@@ -108,8 +128,11 @@ export function App() {
             nodes={nodes}
             t={t}
             direction={profile.direction}
+            soundOn={profile.sound}
             onDirection={(direction) => void changeDirection(direction)}
             onSelect={setLessonId}
+            onToggleSound={() => void toggleSound()}
+            onPress={() => services.sound.play("button")}
           />
         </>
       )}
