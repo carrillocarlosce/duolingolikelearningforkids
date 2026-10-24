@@ -75,6 +75,18 @@ export type Exercise =
     }
   | {
       id: string;
+      type: "spell";
+      word: string;
+      answerLang: Lang;
+      /** Word in the other language, when the child is translating. */
+      promptText: string;
+      showPromptText: boolean;
+      emoji: string;
+      tiles: string[];
+      letters: string[];
+    }
+  | {
+      id: string;
       type: "say";
       promptText: string;
       audioText: string;

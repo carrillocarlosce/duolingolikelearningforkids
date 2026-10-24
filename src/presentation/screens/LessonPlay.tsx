@@ -6,7 +6,7 @@ import type { Answer } from "@/domain/exercises";
 import type { LessonPathItem } from "@/application/get-lesson-path";
 import { buildLessonExercises, mulberry32 } from "@/domain/build-lesson";
 import type { Exercise } from "@/domain/exercises";
-import type { Direction } from "@/domain/language";
+import type { Direction, Lang } from "@/domain/language";
 import { MAX_HEARTS } from "@/domain/scoring";
 import {
   completionSummary,
@@ -17,6 +17,7 @@ import {
 } from "@/domain/session";
 import type { Copy } from "@/presentation/i18n";
 import { SayPrompt } from "@/presentation/exercises/SayPrompt";
+import { SpellWord } from "@/presentation/exercises/SpellWord";
 import { TraceWord } from "@/presentation/exercises/TraceWord";
 import {
   BuildSentence,
@@ -31,6 +32,9 @@ import { LessonReader } from "@/presentation/screens/LessonReader";
 type LessonPlayProps = {
   lesson: LessonPathItem;
   direction: Direction;
+  uiLang: Lang;
+  /** Captured when the lesson opens so a settings change cannot swap the exercise mid-round. */
+  letterTracing: boolean;
   t: Copy;
   speech: SpeechSynthPort;
   recognition: SpeechRecognitionPort;
@@ -42,6 +46,8 @@ type LessonPlayProps = {
 export function LessonPlay({
   lesson,
   direction,
+  uiLang,
+  letterTracing,
   t,
   speech,
   recognition,
@@ -50,13 +56,14 @@ export function LessonPlay({
   onFinished,
 }: LessonPlayProps) {
   const [seed] = useState(() => Math.floor(Math.random() * 1_000_000_000));
+  const [useTracing] = useState(letterTracing);
   const [canSay] = useState(
     () => recognition.supported && (typeof navigator === "undefined" || navigator.onLine),
   );
   const exercises = useMemo(() => {
-    const built = buildLessonExercises(lesson.id, direction, mulberry32(seed));
+    const built = buildLessonExercises(lesson.id, direction, mulberry32(seed), { letterTracing: useTracing });
     return canSay ? built : built.filter((exercise) => exercise.type !== "say");
-  }, [canSay, direction, lesson.id, seed]);
+  }, [canSay, direction, lesson.id, seed, useTracing]);
   const [phase, setPhase] = useState<"intro" | "play" | "done" | "failed">("intro");
   const [session, setSession] = useState<SessionState>(() => startSession(lesson.id, MAX_HEARTS));
   const [draft, setDraft] = useState<Answer | null>(null);
@@ -229,7 +236,7 @@ export function LessonPlay({
   const selfCheck = exercise?.type === "match" || exercise?.type === "trace" || exercise?.type === "say";
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-xl flex-col px-4 pt-4 pb-36">
+    <div className="mx-auto flex min-h-dvh w-full max-w-xl flex-col px-4 pt-4 pb-28">
       <div className="flex items-center gap-3">
         <button
           type="button"
@@ -273,6 +280,9 @@ export function LessonPlay({
             onTraced={() => {
               if (exercise.type === "trace") scoreAnswer({ type: "trace", coverage: 1 });
             }}
+            onSpelled={(tokens) => {
+              if (exercise.type === "spell") scoreAnswer({ type: "tokens", tokens });
+            }}
             onSpoken={(transcript) => {
               if (exercise.type === "say") scoreAnswer({ type: "speech", transcript });
             }}
@@ -280,6 +290,7 @@ export function LessonPlay({
             onEnter={check}
             speech={speech}
             recognition={recognition}
+            uiLang={uiLang}
           />
         ) : null}
       </div>
@@ -369,12 +380,14 @@ function ExerciseBody({
   onText,
   onSolved,
   onTraced,
+  onSpelled,
   onSpoken,
   onEffect,
   onMic,
   onEnter,
   speech,
   recognition,
+  uiLang,
 }: {
   exercise: Exercise;
   t: Copy;
@@ -385,12 +398,14 @@ function ExerciseBody({
   onText: (text: string) => void;
   onSolved: () => void;
   onTraced: () => void;
+  onSpelled: (tokens: string[]) => void;
   onSpoken: (transcript: string) => void;
   onEffect: (effect: "tap" | "select" | "wrong") => void;
   onMic: () => void;
   onEnter: () => void;
   speech: SpeechSynthPort;
   recognition: SpeechRecognitionPort;
+  uiLang: Lang;
 }) {
   const selected = draft?.type === "choice" ? draft.choiceId : null;
   switch (exercise.type) {
@@ -430,7 +445,29 @@ function ExerciseBody({
         />
       );
     case "trace":
-      return <TraceWord exercise={exercise} t={t} disabled={disabled} onSolved={onTraced} />;
+      return (
+        <TraceWord
+          exercise={exercise}
+          t={t}
+          uiLang={uiLang}
+          speech={speech}
+          disabled={disabled}
+          onSolved={onTraced}
+        />
+      );
+    case "spell":
+      return (
+        <SpellWord
+          exercise={exercise}
+          t={t}
+          uiLang={uiLang}
+          speech={speech}
+          disabled={disabled}
+          onDraft={onTokens}
+          onSolved={onSpelled}
+          onEffect={onEffect}
+        />
+      );
     case "say":
       return (
         <SayPrompt

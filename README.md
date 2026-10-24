@@ -4,7 +4,7 @@ A bright, offline-friendly web app for a first grader learning the food words fr
 
 Pipo is an original mango character. This is not Duolingo and it does not use Duolingo's owl or brand assets.
 
-Open a lesson, read the words, then practice: tap the word for a picture, tap the picture for a word, match pairs, build a sentence from tiles, and type the word or sentence. The writing lesson also asks the child to trace each letter with a finger. A small typo still counts, and the screen shows the spelling. Pick EN→ES, ES→EN, English only, or Spanish only on the map. Finishing the round saves the lesson and opens the next one.
+Open a lesson, read the words, then practice: tap the word for a picture, tap the picture for a word, match pairs, build a sentence from tiles, and type the word or sentence. The writing lesson traces each letter on a tablet: numbered dots, arrows, and a thick guide. A phone spells the word with letter tiles instead, until a parent turns letter tracing on in settings. Tracing is practice and does not cost a heart. A small typo still counts, and the screen shows the spelling. Pick EN→ES, ES→EN, English only, or Spanish only on the map. Finishing the round saves the lesson and opens the next one.
 
 ## Run it locally
 
@@ -100,7 +100,7 @@ Progress, XP, hearts, the streak, UI language, and finished lessons stay in a da
 
 The app needs a current Chrome, Edge, Firefox, or Safari (the Next.js 16 baseline). Chrome on the Android tablet is the one that matters here.
 
-**Sound effects** are synthesized in the browser with the Web Audio API. No audio files are downloaded, so they work offline. A correct answer chimes, a miss is a soft buzz, and the end of a lesson has a short fanfare. The gear on the lesson map opens settings for a parent: effects volume, voice volume, voice speed, and the mute switch. Those levels are saved with the profile in IndexedDB and used right away. The first tap on the screen starts audio, which Android needs before it will play anything. While a word is being spoken, effects get quieter so they do not cover the voice. A gentle limiter keeps a loud chord from crackling on the tablet speaker.
+**Sound effects** are synthesized in the browser with the Web Audio API. No audio files are downloaded, so they work offline. A correct answer chimes, a miss is a soft buzz, and the end of a lesson has a short fanfare. The gear on the lesson map opens settings for a parent: effects volume, voice volume, voice speed, the mute switch, and letter tracing. Those choices are saved with the profile in IndexedDB and used right away. Letter tracing starts off on a phone and on for a tablet or computer. Turning it off swaps the writing lesson’s tracing steps for spell-the-word. The first tap on the screen starts audio, which Android needs before it will play anything. While a word is being spoken, effects get quieter so they do not cover the voice. A gentle limiter keeps a loud chord from crackling on the tablet speaker.
 
 **Text-to-speech** uses the tablet’s own voices (`speechSynthesis`). A speaker button plays a word, and the turtle button plays it slowly. The app prefers a Peruvian Spanish voice (`es-PE`) when one is installed, then another Latin American Spanish voice, then any Spanish voice. English prefers a US voice. If that language has no installed voice, the word is written on the screen and the lesson continues. No audio file is downloaded. To hear Spanish, install a Spanish voice in the tablet’s text-to-speech settings.
 

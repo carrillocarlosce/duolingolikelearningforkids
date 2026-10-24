@@ -2,18 +2,32 @@
 
 import { useEffect } from "react";
 import type { AudioLevels } from "@/domain/audio-settings";
+import type { LetterTracingMode } from "@/domain/letter-tracing";
 import type { Copy } from "@/presentation/i18n";
 
 type SettingsPanelProps = {
   levels: AudioLevels;
+  letterTracing: LetterTracingMode;
+  tracingOn: boolean;
   t: Copy;
   onChange: (patch: Partial<AudioLevels>) => void;
+  onLetterTracing: (mode: "on" | "off") => void;
   onTestEffects: () => void;
   onTestVoice: () => void;
   onClose: () => void;
 };
 
-export function SettingsPanel({ levels, t, onChange, onTestEffects, onTestVoice, onClose }: SettingsPanelProps) {
+export function SettingsPanel({
+  levels,
+  letterTracing,
+  tracingOn,
+  t,
+  onChange,
+  onLetterTracing,
+  onTestEffects,
+  onTestVoice,
+  onClose,
+}: SettingsPanelProps) {
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
@@ -62,6 +76,22 @@ export function SettingsPanel({ levels, t, onChange, onTestEffects, onTestVoice,
         >
           {levels.sound ? `🔊 ${t.soundOn}` : `🔇 ${t.soundOff}`}
         </button>
+
+        <button
+          type="button"
+          role="switch"
+          aria-checked={tracingOn}
+          onClick={() => onLetterTracing(tracingOn ? "off" : "on")}
+          className={[
+            "btn-3d mt-3 min-h-16 w-full px-4 py-4 text-xl",
+            tracingOn ? "btn-leaf bg-leaf text-white" : "btn-soft bg-white text-ink",
+          ].join(" ")}
+        >
+          {`✏️ ${t.letterTracing}: ${tracingOn ? t.letterTracingOn : t.letterTracingOff}`}
+        </button>
+        <p className="mt-2 text-base font-semibold text-ink/70">
+          {letterTracing === "auto" ? t.letterTracingAuto : t.letterTracingHint}
+        </p>
 
         <SliderRow
           id="effects-volume"

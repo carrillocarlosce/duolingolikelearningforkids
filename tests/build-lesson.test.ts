@@ -83,6 +83,48 @@ describe("buildLessonExercises", () => {
     }
   });
 
+  it("swaps tracing for spell-the-word when letter tracing is off", () => {
+    const spelled = buildLessonExercises("write-it", "es", mulberry32(5), { letterTracing: false });
+    const spells = spelled.filter((exercise) => exercise.type === "spell");
+    expect(spelled.some((exercise) => exercise.type === "trace")).toBe(false);
+    expect(spells.map((exercise) => (exercise.type === "spell" ? exercise.word : ""))).toEqual([
+      "leche",
+      "sándwich",
+      "ensalada",
+    ]);
+    for (const exercise of spells) {
+      if (exercise.type !== "spell") continue;
+      expect(exercise.answerLang).toBe("es");
+      expect(exercise.letters.join("")).toBe(exercise.word);
+      expect(exercise.tiles).toHaveLength(exercise.letters.length + 2);
+      for (const letter of exercise.letters) {
+        const needed = exercise.letters.filter((item) => item === letter).length;
+        expect(exercise.tiles.filter((item) => item === letter).length).toBe(needed);
+      }
+    }
+
+    const traced = buildLessonExercises("write-it", "en", mulberry32(5), { letterTracing: true });
+    expect(traced.some((exercise) => exercise.type === "spell")).toBe(false);
+    const first = traced.find((exercise) => exercise.type === "trace");
+    if (first?.type !== "trace") throw new Error("missing trace exercise");
+    expect(first.word).toBe("milk");
+    expect(first.lang).toBe("en");
+
+    const englishTiles = buildLessonExercises("write-it", "es-en", () => 0.999999, { letterTracing: false });
+    const milk = englishTiles.find((exercise) => exercise.type === "spell");
+    if (milk?.type !== "spell") throw new Error("missing spell exercise");
+    expect(milk.answerLang).toBe("en");
+    expect(milk.word).toBe("milk");
+    expect(milk.letters).toEqual(["m", "i", "l", "k"]);
+    expect(milk.tiles.slice(0, 4)).toEqual(["i", "m", "l", "k"]);
+
+    for (const lesson of lessonCatalog) {
+      if (lesson.kind === "writing") continue;
+      const round = buildLessonExercises(lesson.id, "en", mulberry32(8), { letterTracing: false });
+      expect(round.some((exercise) => exercise.type === "spell" || exercise.type === "trace")).toBe(false);
+    }
+  });
+
   it("builds a non-empty round for every lesson and direction", () => {
     for (const lesson of lessonCatalog) {
       for (const direction of ["en-es", "es-en", "en", "es"] as const) {

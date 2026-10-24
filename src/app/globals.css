@@ -94,6 +94,9 @@ a {
 .trace-pad {
   touch-action: none;
   aspect-ratio: 1;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .setting-slider {

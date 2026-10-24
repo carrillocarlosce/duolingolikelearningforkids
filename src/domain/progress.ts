@@ -1,5 +1,6 @@
 import { readAudioLevels, type AudioLevels } from "@/domain/audio-settings";
 import type { Direction, Lang } from "@/domain/language";
+import { readLetterTracing, type LetterTracingMode } from "@/domain/letter-tracing";
 import { MAX_HEARTS } from "@/domain/scoring";
 
 export interface Profile extends AudioLevels {
@@ -12,6 +13,8 @@ export interface Profile extends AudioLevels {
   heartsDate: string | null;
   uiLang: Lang;
   direction: Direction;
+  /** "auto" is off on a phone and on for a tablet or computer. */
+  letterTracing: LetterTracingMode;
 }
 
 export interface LessonProgress {
@@ -41,6 +44,7 @@ export function freshProfile(today: string): Profile {
     heartsDate: today,
     uiLang: "es",
     direction: "en",
+    letterTracing: "auto",
     ...readAudioLevels({}),
   };
 }
@@ -63,6 +67,7 @@ export function normalizeProfile(input: unknown, today: string): Profile {
     heartsDate: raw.heartsDate === undefined ? base.heartsDate : raw.heartsDate,
     uiLang: raw.uiLang === "en" || raw.uiLang === "es" ? raw.uiLang : base.uiLang,
     direction: isDirection(raw.direction) ? raw.direction : base.direction,
+    letterTracing: readLetterTracing(raw.letterTracing),
     ...levels,
   };
 }
