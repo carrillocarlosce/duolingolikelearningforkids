@@ -34,6 +34,7 @@ describe("Unit 7 content", () => {
       expect(sentence.enTokens.join(" ")).toBe(sentence.en);
       expect(sentence.esTokens.join(" ")).toBe(sentence.es);
       expect(getSentence(sentence.id).imageIds.length).toBeGreaterThan(0);
+      expect(sentence.scene.emojis.length > 0 || sentence.scene.mascot).toBeTruthy();
     }
     expect(sentences.map((sentence) => sentence.en)).toEqual(
       expect.arrayContaining([

@@ -20,6 +20,7 @@ describe("lesson session", () => {
     const typed: Exercise = {
       id: "type-1",
       type: "type",
+      promptLang: "en",
       answerLang: "es",
       promptText: "apple",
       hidePromptText: false,
@@ -64,7 +65,7 @@ describe("lesson session", () => {
     expect(missed.hearts).toBe(3);
     expect(missed.lastGrade?.status).toBe("incorrect");
 
-    const trace: Exercise = { id: "t", type: "trace", word: "milk", lang: "en", emoji: "🥛" };
+    const trace: Exercise = { id: "t", type: "trace", word: "milk", answerLang: "en", emoji: "🥛" };
     const low = submitAnswer(startSession("drinks", 3), trace, { type: "trace", coverage: TRACE_COVERAGE - 0.1 });
     expect(low.hearts).toBe(3);
     const done = submitAnswer(startSession("drinks", 3), trace, { type: "trace", coverage: TRACE_COVERAGE });
@@ -79,11 +80,14 @@ describe("lesson session", () => {
       promptLang: "en",
       answerLang: "es",
       promptText: "Milk and a sandwich",
+      sourceLang: "en",
+      sourceText: "Milk and a sandwich",
       showPromptText: true,
       speakText: "Leche y un sándwich",
       tiles: ["Leche", "y", "un", "sándwich", "pizza"],
       answerTokens: ["Leche", "y", "un", "sándwich"],
       answerText: "Leche y un sándwich",
+      scene: { emojis: ["🥛", "🥪"] },
     };
     const wrong = submitAnswer(startSession("menu-sentences", 5), build, {
       type: "tokens",
@@ -95,6 +99,57 @@ describe("lesson session", () => {
       tokens: ["leche", "y", "un", "sandwich"],
     });
     expect(right.lastGrade?.status).toBe("correct");
+  });
+
+  it("treats a partial sentence as incomplete instead of a miss", () => {
+    const build: Exercise = {
+      id: "b2",
+      type: "build",
+      sentenceId: "like-apples",
+      promptLang: "es",
+      answerLang: "en",
+      sourceLang: "es",
+      sourceText: "Me gustan las manzanas",
+      promptText: "Me gustan las manzanas",
+      showPromptText: true,
+      speakText: "I like apples",
+      tiles: ["I", "like", "apples", "sandwich", "chicken"],
+      answerTokens: ["I", "like", "apples"],
+      answerText: "I like apples",
+      scene: { mascot: "like", emojis: ["🍎"] },
+    };
+    const partial = submitAnswer(startSession("i-like", 5), build, { type: "tokens", tokens: ["apples"] });
+    expect(partial.lastGrade?.status).toBe("almost");
+    expect(partial.lastGrade?.incomplete).toBe(true);
+    expect(partial.lastGrade?.canonical).toBe("I like apples");
+    expect(partial.hearts).toBe(5);
+    expect(partial.mistakes).toBe(0);
+
+    const prefix = submitAnswer(startSession("i-like", 5), build, { type: "tokens", tokens: ["I", "like"] });
+    expect(prefix.lastGrade?.incomplete).toBe(true);
+
+    const stray = submitAnswer(startSession("i-like", 5), build, { type: "tokens", tokens: ["apples", "sandwich"] });
+    expect(stray.lastGrade?.status).toBe("incorrect");
+    expect(stray.hearts).toBe(4);
+
+    const typed: Exercise = {
+      id: "type-sentence",
+      type: "type",
+      sentenceId: "like-apples",
+      promptLang: "es",
+      answerLang: "en",
+      sourceLang: "es",
+      sourceText: "Me gustan las manzanas",
+      promptText: "Me gustan las manzanas",
+      hidePromptText: false,
+      speakText: "I like apples",
+      accepted: ["I like apples"],
+      emoji: "",
+      scene: { mascot: "like", emojis: ["🍎"] },
+    };
+    const short = submitAnswer(startSession("i-like", 5), typed, { type: "text", text: "apples" });
+    expect(short.lastGrade).toMatchObject({ status: "almost", incomplete: true, canonical: "I like apples" });
+    expect(short.hearts).toBe(5);
   });
 
   it("adds a perfect bonus when the lesson is finished with no misses", () => {
@@ -115,7 +170,7 @@ describe("lesson session", () => {
       type: "say",
       promptText: "milk",
       audioText: "milk",
-      lang: "en",
+      answerLang: "en",
       accepted: ["milk"],
       emoji: "🥛",
     };

@@ -5,8 +5,9 @@ import type { SoundEffectsPort, SpeechRecognitionPort, SpeechSynthPort } from "@
 import type { Answer } from "@/domain/exercises";
 import type { LessonPathItem } from "@/application/get-lesson-path";
 import { buildLessonExercises, mulberry32 } from "@/domain/build-lesson";
-import type { Exercise } from "@/domain/exercises";
-import type { Direction } from "@/domain/language";
+import { answerLanguage, type Exercise } from "@/domain/exercises";
+import type { Direction, Lang } from "@/domain/language";
+import { SPEECH_RATE_NORMAL } from "@/domain/speech";
 import { MAX_HEARTS } from "@/domain/scoring";
 import {
   completionSummary,
@@ -16,6 +17,7 @@ import {
   type SessionState,
 } from "@/domain/session";
 import type { Copy } from "@/presentation/i18n";
+import { AnswerLanguageBadge } from "@/presentation/components/AnswerLanguageBadge";
 import { SayPrompt } from "@/presentation/exercises/SayPrompt";
 import { TraceWord } from "@/presentation/exercises/TraceWord";
 import {
@@ -31,6 +33,7 @@ import { LessonReader } from "@/presentation/screens/LessonReader";
 type LessonPlayProps = {
   lesson: LessonPathItem;
   direction: Direction;
+  uiLang: Lang;
   t: Copy;
   speech: SpeechSynthPort;
   recognition: SpeechRecognitionPort;
@@ -42,6 +45,7 @@ type LessonPlayProps = {
 export function LessonPlay({
   lesson,
   direction,
+  uiLang,
   t,
   speech,
   recognition,
@@ -75,6 +79,10 @@ export function LessonPlay({
 
   const exercise = exercises[session.index];
   const locked = session.phase !== "question";
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [phase, exercise?.id]);
 
   const setTokens = useCallback((tokens: string[] | null) => {
     setDraft(tokens ? { type: "tokens", tokens } : null);
@@ -217,6 +225,7 @@ export function LessonPlay({
   }
 
   const grade = session.lastGrade;
+  const feedbackLang = exercise ? answerLanguage(exercise) : null;
   const banner =
     grade?.status === "correct"
       ? "bg-leaf text-white"
@@ -255,6 +264,7 @@ export function LessonPlay({
         {exercise ? (
           <ExerciseBody
             exercise={exercise}
+            uiLang={uiLang}
             t={t}
             draft={draft}
             disabled={locked}
@@ -291,13 +301,30 @@ export function LessonPlay({
               {grade.status === "correct"
                 ? t.correct
                 : grade.status === "almost"
-                  ? t.almost
+                  ? grade.incomplete
+                    ? t.almostSentence
+                    : t.almost
                   : grade.status === "skipped"
                     ? t.skipped
                     : t.wrong}
             </p>
             {grade.status !== "correct" && grade.status !== "skipped" && grade.canonical ? (
-              <p className="text-xl font-bold">{grade.canonical}</p>
+              <div className="mt-2 flex items-center gap-3">
+                <p lang={feedbackLang ?? undefined} className="text-xl font-bold">
+                  {grade.canonical}
+                </p>
+                {feedbackLang ? (
+                  <button
+                    type="button"
+                    lang={feedbackLang}
+                    aria-label={t.hearSentence}
+                    onClick={() => speech.speak(grade.canonical ?? "", feedbackLang, SPEECH_RATE_NORMAL)}
+                    className="grid size-14 shrink-0 place-items-center rounded-full bg-white text-2xl text-ink"
+                  >
+                    <span aria-hidden="true">🔊</span>
+                  </button>
+                ) : null}
+              </div>
             ) : null}
             <button
               type="button"
@@ -361,6 +388,7 @@ export function LessonPlay({
 
 function ExerciseBody({
   exercise,
+  uiLang,
   t,
   draft,
   disabled,
@@ -377,6 +405,7 @@ function ExerciseBody({
   recognition,
 }: {
   exercise: Exercise;
+  uiLang: Lang;
   t: Copy;
   draft: Answer | null;
   disabled: boolean;
@@ -393,7 +422,8 @@ function ExerciseBody({
   recognition: SpeechRecognitionPort;
 }) {
   const selected = draft?.type === "choice" ? draft.choiceId : null;
-  switch (exercise.type) {
+  const body = (() => {
+    switch (exercise.type) {
     case "picture-word":
       return (
         <PictureWord exercise={exercise} t={t} selected={selected} disabled={disabled} onSelect={onSelect} />
@@ -414,10 +444,20 @@ function ExerciseBody({
           disabled={disabled}
           onDraft={onTokens}
           onEffect={onEffect}
+          speech={speech}
         />
       );
     case "type":
-      return <TypeAnswer exercise={exercise} t={t} disabled={disabled} onDraft={onText} onEnter={onEnter} />;
+      return (
+        <TypeAnswer
+          exercise={exercise}
+          t={t}
+          disabled={disabled}
+          onDraft={onText}
+          onEnter={onEnter}
+          speech={speech}
+        />
+      );
     case "listen":
       return (
         <ListenPick
@@ -446,4 +486,12 @@ function ExerciseBody({
     default:
       return null;
   }
+  })();
+
+  return (
+    <div className="flex flex-col gap-4">
+      <AnswerLanguageBadge exercise={exercise} uiLang={uiLang} t={t} speech={speech} />
+      {body}
+    </div>
+  );
 }

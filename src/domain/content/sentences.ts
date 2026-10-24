@@ -1,5 +1,11 @@
 import type { Lang } from "@/domain/language";
 
+/** Picture that carries the sentence meaning. A single food emoji is not enough for "I like" or "I want". */
+export interface SentenceScene {
+  emojis: readonly string[];
+  mascot?: "like" | "want" | "shop";
+}
+
 export interface Sentence {
   id: string;
   en: string;
@@ -9,6 +15,19 @@ export interface Sentence {
   enAlternates?: readonly string[];
   esAlternates?: readonly string[];
   imageIds: readonly string[];
+  scene: SentenceScene;
+  /** Answer-language frame with a blank, used when the child picks the food inside a sentence. */
+  cloze?: { en: string; es: string };
+}
+
+export function otherLang(lang: Lang): Lang {
+  return lang === "en" ? "es" : "en";
+}
+
+/** Emoji row for the lesson reader. The exercise screen draws Pipo itself. */
+export function scenePreview(scene: SentenceScene): string {
+  const lead = scene.mascot === "like" ? "💛" : scene.mascot === "want" ? "👉" : scene.mascot === "shop" ? "🏠" : "";
+  return `${lead}${scene.emojis.join("")}`;
 }
 
 export const sentences: readonly Sentence[] = [
@@ -19,6 +38,7 @@ export const sentences: readonly Sentence[] = [
     enTokens: ["Milk", "and", "a", "sandwich"],
     esTokens: ["Leche", "y", "un", "sándwich"],
     imageIds: ["milk", "sandwich"],
+    scene: { emojis: ["🥛", "🥪"] },
   },
   {
     id: "pasta-juice",
@@ -28,6 +48,7 @@ export const sentences: readonly Sentence[] = [
     esTokens: ["Fideos", "y", "jugo", "de", "naranja"],
     esAlternates: ["Pasta y jugo de naranja", "Tallarines y jugo de naranja"],
     imageIds: ["pasta", "orange", "juice"],
+    scene: { emojis: ["🍝", "🍊", "🧃"] },
   },
   {
     id: "chicken-salad",
@@ -36,6 +57,7 @@ export const sentences: readonly Sentence[] = [
     enTokens: ["Chicken", "and", "salad"],
     esTokens: ["Pollo", "y", "ensalada"],
     imageIds: ["chicken", "salad"],
+    scene: { emojis: ["🍗", "🥗"] },
   },
   {
     id: "fruit-salad",
@@ -44,6 +66,7 @@ export const sentences: readonly Sentence[] = [
     enTokens: ["Fruit", "salad"],
     esTokens: ["Ensalada", "de", "frutas"],
     imageIds: ["fruit", "salad"],
+    scene: { emojis: ["🍓", "🥗"] },
   },
   {
     id: "like-apples",
@@ -52,6 +75,8 @@ export const sentences: readonly Sentence[] = [
     enTokens: ["I", "like", "apples"],
     esTokens: ["Me", "gustan", "las", "manzanas"],
     imageIds: ["apple"],
+    scene: { mascot: "like", emojis: ["🍎"] },
+    cloze: { en: "I like ___", es: "Me gustan las ___" },
   },
   {
     id: "want-pizza",
@@ -60,6 +85,8 @@ export const sentences: readonly Sentence[] = [
     enTokens: ["I", "want", "pizza"],
     esTokens: ["Quiero", "pizza"],
     imageIds: ["pizza"],
+    scene: { mascot: "want", emojis: ["🍕"] },
+    cloze: { en: "I want ___", es: "Quiero ___" },
   },
   {
     id: "like-milk",
@@ -68,6 +95,8 @@ export const sentences: readonly Sentence[] = [
     enTokens: ["I", "like", "milk"],
     esTokens: ["Me", "gusta", "la", "leche"],
     imageIds: ["milk"],
+    scene: { mascot: "like", emojis: ["🥛"] },
+    cloze: { en: "I like ___", es: "Me gusta la ___" },
   },
   {
     id: "want-hamburger",
@@ -76,6 +105,8 @@ export const sentences: readonly Sentence[] = [
     enTokens: ["I", "want", "a", "hamburger"],
     esTokens: ["Quiero", "una", "hamburguesa"],
     imageIds: ["hamburger"],
+    scene: { mascot: "want", emojis: ["🍔"] },
+    cloze: { en: "I want a ___", es: "Quiero una ___" },
   },
   {
     id: "want-cookies",
@@ -84,6 +115,8 @@ export const sentences: readonly Sentence[] = [
     enTokens: ["I", "want", "cookies"],
     esTokens: ["Quiero", "galletas"],
     imageIds: ["cookies"],
+    scene: { mascot: "want", emojis: ["🍪"] },
+    cloze: { en: "I want ___", es: "Quiero ___" },
   },
   {
     id: "orange-juice",
@@ -92,6 +125,7 @@ export const sentences: readonly Sentence[] = [
     enTokens: ["Orange", "juice"],
     esTokens: ["Jugo", "de", "naranja"],
     imageIds: ["orange", "juice"],
+    scene: { emojis: ["🍊", "🧃"] },
   },
   {
     id: "my-restaurant",
@@ -100,6 +134,7 @@ export const sentences: readonly Sentence[] = [
     enTokens: ["My", "restaurant", "is", "called", "Sunny", "Food"],
     esTokens: ["Mi", "restaurante", "se", "llama", "Sunny", "Food"],
     imageIds: ["fruit", "salad"],
+    scene: { mascot: "shop", emojis: ["🍽️"] },
   },
 ];
 

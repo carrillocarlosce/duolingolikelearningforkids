@@ -1,4 +1,4 @@
-import { getSentence } from "@/domain/content/sentences";
+import { getSentence, scenePreview } from "@/domain/content/sentences";
 import { getVocab, vocabulary } from "@/domain/content/vocabulary";
 import { lessonCatalog } from "@/domain/lesson-path";
 
@@ -20,7 +20,7 @@ export function practiceCards(lessonId: string): PracticeCard[] {
   });
   const lines = lesson.sentenceIds.map((id) => {
     const sentence = getSentence(id);
-    const emoji = sentence.imageIds.map((imageId) => getVocab(imageId).emoji).join("");
+    const emoji = scenePreview(sentence.scene);
     return { id: sentence.id, emoji, en: sentence.en, es: sentence.es };
   });
   return [...words, ...lines];
