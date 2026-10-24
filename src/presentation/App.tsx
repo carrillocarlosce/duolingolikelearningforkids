@@ -10,7 +10,13 @@ import { createAppServices, todayIsoDate } from "@/composition/create-services";
 import type { AudioLevels } from "@/domain/audio-settings";
 import type { Direction } from "@/domain/language";
 import { letterTracingEnabled, type LetterTracingMode } from "@/domain/letter-tracing";
-import { completedLessonIds, withAudioSettings, withRestaurant, type Profile } from "@/domain/progress";
+import {
+  completedLessonIds,
+  withAudioSettings,
+  withHeartCount,
+  withRestaurant,
+  type Profile,
+} from "@/domain/progress";
 import type { RestaurantPlan } from "@/domain/restaurant";
 import { SPEECH_RATE_NORMAL } from "@/domain/speech";
 import { copy } from "@/presentation/i18n";
@@ -130,6 +136,12 @@ export function App() {
     persist({ ...current, letterTracing: mode });
   }
 
+  function changeHearts(hearts: number) {
+    const current = profileRef.current;
+    if (!current) return;
+    persist(withHeartCount(current, hearts));
+  }
+
   function saveMenu(plan: RestaurantPlan) {
     const current = profileRef.current;
     if (!services || !current) return;
@@ -173,11 +185,14 @@ export function App() {
           direction={profile.direction}
           uiLang={profile.uiLang}
           letterTracing={letterTracingEnabled(profile.letterTracing, coarsePhone)}
+          hearts={profile.hearts}
+          streak={profile.streak}
           t={t}
           speech={services.speech}
           recognition={services.recognition}
           sound={services.sound}
           onExit={() => setLessonId(null)}
+          onHearts={changeHearts}
           onFinished={(summary) => void finishLesson(selected.id, summary)}
         />
       ) : (
@@ -190,6 +205,9 @@ export function App() {
             t={t}
             direction={profile.direction}
             soundOn={profile.sound}
+            hearts={profile.hearts}
+            xp={profile.xp}
+            streak={profile.streak}
             onDirection={(direction) => void changeDirection(direction)}
             onSelect={setLessonId}
             onOpenSettings={() => setSettingsOpen(true)}

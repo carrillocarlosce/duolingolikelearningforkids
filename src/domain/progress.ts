@@ -99,6 +99,12 @@ export function addDays(isoDate: string, days: number): string {
   return `${y}-${m}-${d}`;
 }
 
+/** Keep a heart count inside the meter and on this profile. */
+export function withHeartCount(profile: Profile, hearts: number): Profile {
+  const count = Number.isFinite(hearts) ? Math.round(hearts) : profile.hearts;
+  return { ...profile, hearts: Math.min(MAX_HEARTS, Math.max(0, count)) };
+}
+
 /** A new local day refills hearts. The same day keeps whatever is left. */
 export function rollHearts(profile: Profile, today: string): Profile {
   if (profile.heartsDate === today) return profile;
