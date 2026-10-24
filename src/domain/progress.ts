@@ -1,7 +1,8 @@
+import { readAudioLevels, type AudioLevels } from "@/domain/audio-settings";
 import type { Direction, Lang } from "@/domain/language";
 import { MAX_HEARTS } from "@/domain/scoring";
 
-export interface Profile {
+export interface Profile extends AudioLevels {
   xp: number;
   hearts: number;
   streak: number;
@@ -10,7 +11,6 @@ export interface Profile {
   /** Local day the heart counter was last set, YYYY-MM-DD. */
   heartsDate: string | null;
   uiLang: Lang;
-  sound: boolean;
   direction: Direction;
 }
 
@@ -22,6 +22,16 @@ export interface LessonProgress {
   timesCompleted: number;
 }
 
+const directions: readonly Direction[] = ["en", "es", "en-es", "es-en"];
+
+function finiteOr(value: unknown, fallback: number): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+
+function isDirection(value: unknown): value is Direction {
+  return directions.includes(value as Direction);
+}
+
 export function freshProfile(today: string): Profile {
   return {
     xp: 0,
@@ -30,9 +40,35 @@ export function freshProfile(today: string): Profile {
     lastActiveDate: null,
     heartsDate: today,
     uiLang: "es",
-    sound: true,
     direction: "en",
+    ...readAudioLevels({}),
   };
+}
+
+/**
+ * Older tablets stored a profile before volume sliders existed.
+ * Reading always returns levels inside the slider limits.
+ */
+export function normalizeProfile(input: unknown, today: string): Profile {
+  const raw = input && typeof input === "object" ? (input as Partial<Profile>) : {};
+  const base = freshProfile(today);
+  const levels = readAudioLevels(raw);
+  return {
+    ...base,
+    ...raw,
+    xp: finiteOr(raw.xp, base.xp),
+    hearts: finiteOr(raw.hearts, base.hearts),
+    streak: finiteOr(raw.streak, base.streak),
+    lastActiveDate: raw.lastActiveDate === undefined ? base.lastActiveDate : raw.lastActiveDate,
+    heartsDate: raw.heartsDate === undefined ? base.heartsDate : raw.heartsDate,
+    uiLang: raw.uiLang === "en" || raw.uiLang === "es" ? raw.uiLang : base.uiLang,
+    direction: isDirection(raw.direction) ? raw.direction : base.direction,
+    ...levels,
+  };
+}
+
+export function withAudioSettings(profile: Profile, patch: Partial<AudioLevels>): Profile {
+  return normalizeProfile({ ...profile, ...patch }, profile.heartsDate ?? "1970-01-01");
 }
 
 export function addDays(isoDate: string, days: number): string {

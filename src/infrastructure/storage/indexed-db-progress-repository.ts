@@ -1,6 +1,6 @@
 import { openDB, type DBSchema, type IDBPDatabase } from "idb";
 import type { ProgressRepository } from "@/application/ports";
-import { freshProfile, type LessonProgress, type Profile } from "@/domain/progress";
+import { freshProfile, normalizeProfile, type LessonProgress, type Profile } from "@/domain/progress";
 import { localISODate } from "@/infrastructure/clock";
 
 interface MarketDB extends DBSchema {
@@ -46,15 +46,21 @@ export class IndexedDbProgressRepository implements ProgressRepository {
   async getProfile(): Promise<Profile> {
     const database = await this.database();
     const stored = await database.get("profile", PROFILE_KEY);
-    if (stored) return stored;
-    const created = freshProfile(this.today());
-    await database.put("profile", created, PROFILE_KEY);
-    return created;
+    if (!stored) {
+      const created = freshProfile(this.today());
+      await database.put("profile", created, PROFILE_KEY);
+      return created;
+    }
+    const normalized = normalizeProfile(stored, this.today());
+    if (needsLevelMigration(stored, normalized)) {
+      await database.put("profile", normalized, PROFILE_KEY);
+    }
+    return normalized;
   }
 
   async saveProfile(profile: Profile): Promise<void> {
     const database = await this.database();
-    await database.put("profile", profile, PROFILE_KEY);
+    await database.put("profile", normalizeProfile(profile, this.today()), PROFILE_KEY);
   }
 
   async getLessonProgress(): Promise<LessonProgress[]> {
@@ -78,4 +84,13 @@ export class IndexedDbProgressRepository implements ProgressRepository {
     database.close();
     this.connection = null;
   }
+}
+
+function needsLevelMigration(stored: Profile, normalized: Profile): boolean {
+  return (
+    stored.sound !== normalized.sound ||
+    stored.effectsVolume !== normalized.effectsVolume ||
+    stored.voiceVolume !== normalized.voiceVolume ||
+    stored.voiceSpeed !== normalized.voiceSpeed
+  );
 }

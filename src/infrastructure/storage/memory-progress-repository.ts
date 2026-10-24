@@ -1,12 +1,12 @@
 import type { ProgressRepository } from "@/application/ports";
-import { freshProfile, type LessonProgress, type Profile } from "@/domain/progress";
+import { freshProfile, normalizeProfile, type LessonProgress, type Profile } from "@/domain/progress";
 
 export class MemoryProgressRepository implements ProgressRepository {
   private profile: Profile;
   private readonly lessons = new Map<string, LessonProgress>();
 
   constructor(profile?: Profile) {
-    this.profile = profile ?? freshProfile("1970-01-01");
+    this.profile = normalizeProfile(profile ?? freshProfile("1970-01-01"), profile?.heartsDate ?? "1970-01-01");
   }
 
   async getProfile(): Promise<Profile> {
@@ -14,7 +14,7 @@ export class MemoryProgressRepository implements ProgressRepository {
   }
 
   async saveProfile(profile: Profile): Promise<void> {
-    this.profile = { ...profile };
+    this.profile = normalizeProfile(profile, profile.heartsDate ?? "1970-01-01");
   }
 
   async getLessonProgress(): Promise<LessonProgress[]> {

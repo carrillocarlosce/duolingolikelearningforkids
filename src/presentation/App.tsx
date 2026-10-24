@@ -1,17 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getLessonPath, type LessonPathItem } from "@/application/get-lesson-path";
 import { loadLearnerState } from "@/application/load-learner-state";
 import type { AppServices } from "@/application/ports";
 import { recordLessonResult } from "@/application/record-lesson-result";
 import { createAppServices, todayIsoDate } from "@/composition/create-services";
+import type { AudioLevels } from "@/domain/audio-settings";
 import type { Direction } from "@/domain/language";
-import { completedLessonIds, type Profile } from "@/domain/progress";
+import { completedLessonIds, withAudioSettings, type Profile } from "@/domain/progress";
+import { SPEECH_RATE_NORMAL } from "@/domain/speech";
 import { copy } from "@/presentation/i18n";
 import { PipoMark } from "@/presentation/components/PipoMark";
 import { LessonMap } from "@/presentation/screens/LessonMap";
 import { LessonPlay } from "@/presentation/screens/LessonPlay";
+import { SettingsPanel } from "@/presentation/screens/SettingsPanel";
 
 export function App() {
   const [services, setServices] = useState<AppServices | null>(null);
@@ -19,13 +22,16 @@ export function App() {
   const [nodes, setNodes] = useState<LessonPathItem[]>([]);
   const [lessonId, setLessonId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const profileRef = useRef<Profile | null>(null);
+  const saveQueue = useRef(Promise.resolve());
 
   useEffect(() => {
     let cancelled = false;
     createAppServices().then(async (next) => {
       const loaded = await loadLearnerState(next.progress, todayIsoDate());
       if (cancelled) return;
-      next.sound.setEnabled(loaded.profile.sound);
+      applyLevels(next, loaded.profile);
       setServices(next);
       setProfile(loaded.profile);
       setNodes(getLessonPath(completedLessonIds(loaded.progress)));
@@ -36,6 +42,7 @@ export function App() {
   }, []);
 
   useEffect(() => {
+    profileRef.current = profile;
     if (profile) document.documentElement.lang = profile.uiLang;
   }, [profile]);
 
@@ -85,20 +92,30 @@ export function App() {
     setToast(copy[result.profile.uiLang].saved);
   }
 
-  async function toggleSound() {
-    if (!services || !profile) return;
-    const next = { ...profile, sound: !profile.sound };
+  function persist(next: Profile) {
+    if (!services) return;
+    profileRef.current = next;
     setProfile(next);
-    services.sound.setEnabled(next.sound);
-    await services.progress.saveProfile(next);
-    if (next.sound) services.sound.play("button");
+    const progress = services.progress;
+    saveQueue.current = saveQueue.current
+      .then(() => progress.saveProfile(next))
+      .then(() => undefined)
+      .catch(() => undefined);
   }
 
-  async function changeDirection(direction: Direction) {
-    if (!services || !profile) return;
-    const next = { ...profile, direction };
-    setProfile(next);
-    await services.progress.saveProfile(next);
+  function changeAudio(patch: Partial<AudioLevels>) {
+    const current = profileRef.current;
+    if (!services || !current) return;
+    const next = withAudioSettings(current, patch);
+    applyLevels(services, next);
+    if (patch.sound === true) services.sound.play("button");
+    persist(next);
+  }
+
+  function changeDirection(direction: Direction) {
+    const current = profileRef.current;
+    if (!current) return;
+    persist({ ...current, direction });
   }
 
   return (
@@ -131,11 +148,28 @@ export function App() {
             soundOn={profile.sound}
             onDirection={(direction) => void changeDirection(direction)}
             onSelect={setLessonId}
-            onToggleSound={() => void toggleSound()}
+            onOpenSettings={() => setSettingsOpen(true)}
             onPress={() => services.sound.play("button")}
           />
         </>
       )}
+      {settingsOpen ? (
+        <SettingsPanel
+          levels={profile}
+          t={t}
+          onChange={changeAudio}
+          onTestEffects={() => services.sound.preview("correct")}
+          onTestVoice={() => services.speech.speak(t.testWord, profile.uiLang, SPEECH_RATE_NORMAL)}
+          onClose={() => setSettingsOpen(false)}
+        />
+      ) : null}
     </>
   );
+}
+
+function applyLevels(services: AppServices, profile: Profile) {
+  services.sound.setEnabled(profile.sound);
+  services.sound.setVolume(profile.effectsVolume);
+  services.speech.setVolume(profile.voiceVolume);
+  services.speech.setSpeed(profile.voiceSpeed);
 }

@@ -1,9 +1,18 @@
 import { describe, expect, it, vi } from "vitest";
+import { DEFAULT_EFFECTS_VOLUME } from "@/domain/audio-settings";
 import { NoopSoundEffects } from "@/infrastructure/audio/noop-sound-effects";
-import { SPEECH_DUCK, WebAudioEffects } from "@/infrastructure/audio/web-audio-effects";
+import { MAKEUP_GAIN, SPEECH_DUCK, WebAudioEffects } from "@/infrastructure/audio/web-audio-effects";
 
 class FakeParam {
-  value = 0;
+  peak = 0;
+  private current = 0;
+  get value(): number {
+    return this.current;
+  }
+  set value(next: number) {
+    this.current = next;
+    if (next > this.peak) this.peak = next;
+  }
   setValueAtTime(value: number): void {
     this.value = value;
   }
@@ -46,6 +55,14 @@ class FakeFilter extends FakeNode {
   frequency = new FakeParam();
 }
 
+class FakeCompressor extends FakeNode {
+  threshold = new FakeParam();
+  knee = new FakeParam();
+  ratio = new FakeParam();
+  attack = new FakeParam();
+  release = new FakeParam();
+}
+
 class FakeContext {
   currentTime = 0;
   sampleRate = 8000;
@@ -54,6 +71,7 @@ class FakeContext {
   resumes = 0;
   oscillators: FakeOsc[] = [];
   gains: FakeGain[] = [];
+  compressors: FakeCompressor[] = [];
 
   resume(): Promise<void> {
     this.resumes += 1;
@@ -93,6 +111,12 @@ class FakeContext {
   createBiquadFilter(): FakeFilter {
     return new FakeFilter();
   }
+
+  createDynamicsCompressor(): FakeCompressor {
+    const compressor = new FakeCompressor();
+    this.compressors.push(compressor);
+    return compressor;
+  }
 }
 
 describe("sound effects", () => {
@@ -101,10 +125,13 @@ describe("sound effects", () => {
     expect(() => {
       sound.unlock();
       sound.play("fanfare");
+      sound.preview("correct");
       sound.setEnabled(false);
+      sound.setVolume(4);
       sound.play("correct");
     }).not.toThrow();
     expect(sound.enabled).toBe(false);
+    expect(sound.volume).toBe(1);
   });
 
   it("synthesizes a chime only while sound is on, and ducks it under speech", () => {
@@ -157,5 +184,31 @@ describe("sound effects", () => {
     } finally {
       vi.unstubAllGlobals();
     }
+  });
+
+  it("raises a single chime through the limiter and follows the effects slider", () => {
+    const ctx = new FakeContext();
+    const sound = new WebAudioEffects(() => ctx as unknown as AudioContext, () => false);
+
+    sound.play("button");
+    expect(ctx.compressors[0]?.threshold.value).toBe(-8);
+    expect(ctx.gains[1]?.gain.value).toBe(DEFAULT_EFFECTS_VOLUME);
+    expect(ctx.gains[2]?.gain.value).toBe(MAKEUP_GAIN);
+    expect(ctx.gains[3]?.gain.peak).toBeGreaterThanOrEqual(0.65);
+
+    sound.setVolume(0.4);
+    expect(ctx.gains[1]?.gain.value).toBe(0.4);
+    sound.setVolume(5);
+    expect(ctx.gains[1]?.gain.value).toBe(1);
+    sound.setVolume(-1);
+    expect(ctx.gains[1]?.gain.value).toBe(0);
+
+    const started = ctx.oscillators.length;
+    sound.setEnabled(false);
+    sound.play("correct");
+    expect(ctx.oscillators.length).toBe(started);
+    sound.preview("correct");
+    expect(ctx.oscillators.length).toBeGreaterThan(started);
+    expect(ctx.gains[0]?.gain.value).toBe(1);
   });
 });
