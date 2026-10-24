@@ -20,6 +20,7 @@ describe("lesson session", () => {
     const typed: Exercise = {
       id: "type-1",
       type: "type",
+      promptLang: "en",
       answerLang: "es",
       promptText: "apple",
       hidePromptText: false,
@@ -64,7 +65,7 @@ describe("lesson session", () => {
     expect(missed.hearts).toBe(3);
     expect(missed.lastGrade?.status).toBe("incorrect");
 
-    const trace: Exercise = { id: "t", type: "trace", word: "milk", lang: "en", emoji: "🥛" };
+    const trace: Exercise = { id: "t", type: "trace", word: "milk", answerLang: "en", emoji: "🥛" };
     const low = submitAnswer(startSession("drinks", 3), trace, { type: "trace", coverage: TRACE_COVERAGE - 0.1 });
     expect(low.hearts).toBe(3);
     const done = submitAnswer(startSession("drinks", 3), trace, { type: "trace", coverage: TRACE_COVERAGE });
@@ -115,7 +116,7 @@ describe("lesson session", () => {
       type: "say",
       promptText: "milk",
       audioText: "milk",
-      lang: "en",
+      answerLang: "en",
       accepted: ["milk"],
       emoji: "🥛",
     };

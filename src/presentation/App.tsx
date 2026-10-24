@@ -112,6 +112,7 @@ export function App() {
         <LessonPlay
           lesson={selected}
           direction={profile.direction}
+          uiLang={profile.uiLang}
           t={t}
           speech={services.speech}
           recognition={services.recognition}

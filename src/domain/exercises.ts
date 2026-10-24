@@ -53,6 +53,8 @@ export type Exercise =
   | {
       id: string;
       type: "type";
+      /** Language of the sentence or word shown above the box, when it is shown. */
+      promptLang: Lang;
       answerLang: Lang;
       promptText: string;
       hidePromptText: boolean;
@@ -70,7 +72,7 @@ export type Exercise =
       id: string;
       type: "trace";
       word: string;
-      lang: Lang;
+      answerLang: Lang;
       emoji: string;
     }
   | {
@@ -78,7 +80,7 @@ export type Exercise =
       type: "say";
       promptText: string;
       audioText: string;
-      lang: Lang;
+      answerLang: Lang;
       accepted: string[];
       emoji: string;
     };
@@ -98,4 +100,28 @@ export interface Grade {
   status: GradeStatus;
   /** The form we show after an almost or a miss. */
   canonical?: string;
+}
+
+/**
+ * Language the child must write, build, trace, or say.
+ * Choice exercises (picture, listen, match) return null even when they store an answer language for the options.
+ */
+export function answerLanguage(exercise: Exercise): Lang | null {
+  switch (exercise.type) {
+    case "type":
+    case "build":
+    case "trace":
+    case "say":
+      return exercise.answerLang;
+    case "picture-word":
+    case "word-picture":
+    case "listen":
+    case "match":
+      return null;
+    default: {
+      const unexpected: never = exercise;
+      void unexpected;
+      return null;
+    }
+  }
 }

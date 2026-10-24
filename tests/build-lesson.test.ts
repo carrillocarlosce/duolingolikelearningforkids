@@ -1,14 +1,20 @@
 import { describe, expect, it } from "vitest";
 import { buildLessonExercises, mulberry32 } from "@/domain/build-lesson";
 import { getVocab } from "@/domain/content/vocabulary";
+import { answerLanguage } from "@/domain/exercises";
+import type { Direction, Lang } from "@/domain/language";
 import { lessonCatalog } from "@/domain/lesson-path";
+
+function answerFor(direction: Direction): Lang {
+  return direction === "en" || direction === "es-en" ? "en" : "es";
+}
 
 describe("buildLessonExercises", () => {
   it("starts with a say-it prompt for the answer language", () => {
     const english = buildLessonExercises("sweet-treats", "en", mulberry32(1));
     const said = english[0];
     if (said?.type !== "say") throw new Error("missing say exercise");
-    expect(said.lang).toBe("en");
+    expect(said.answerLang).toBe("en");
     expect(said.promptText).toBe("cake");
     expect(said.accepted).toContain("cake");
 
@@ -74,7 +80,7 @@ describe("buildLessonExercises", () => {
     const first = english.find((exercise) => exercise.type === "trace");
     if (first?.type !== "trace") throw new Error("missing trace exercise");
     expect(first.word).toBe("milk");
-    expect(first.lang).toBe("en");
+    expect(first.answerLang).toBe("en");
 
     for (const lesson of lessonCatalog) {
       if (lesson.kind === "writing") continue;
@@ -100,5 +106,42 @@ describe("buildLessonExercises", () => {
         expect(exercises.some((exercise) => exercise.type === "listen")).toBe(true);
       }
     }
+  });
+
+  it("puts a target language on every exercise the child writes, builds, traces, or says", () => {
+    const seen = new Set<string>();
+    for (const lesson of lessonCatalog) {
+      for (const direction of ["en-es", "es-en", "en", "es"] as const) {
+        const expected = answerFor(direction);
+        const exercises = buildLessonExercises(lesson.id, direction, mulberry32(8));
+        expect(exercises.some((exercise) => exercise.type === "type" || exercise.type === "say")).toBe(true);
+        for (const exercise of exercises) {
+          seen.add(exercise.type);
+          const target = answerLanguage(exercise);
+          switch (exercise.type) {
+            case "type":
+            case "build":
+            case "trace":
+            case "say":
+              expect(target).toBe(expected);
+              expect(exercise.answerLang).toBe(expected);
+              break;
+            case "picture-word":
+            case "word-picture":
+            case "listen":
+            case "match":
+              expect(target).toBeNull();
+              break;
+            default: {
+              const unexpected: never = exercise;
+              throw new Error(`unclassified exercise ${JSON.stringify(unexpected)}`);
+            }
+          }
+        }
+      }
+    }
+    expect([...seen].sort()).toEqual(
+      ["build", "listen", "match", "picture-word", "say", "trace", "type", "word-picture"].sort(),
+    );
   });
 });

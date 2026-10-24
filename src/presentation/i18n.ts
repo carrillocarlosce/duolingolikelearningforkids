@@ -54,6 +54,8 @@ export const copy = {
     soundOn: "Sonido activado",
     soundOff: "Sonido apagado",
     xp: "XP",
+    answerInEnglish: "Responde en inglés",
+    answerInSpanish: "Responde en español",
   },
   en: {
     unitLabel: "Unit 7",
@@ -108,6 +110,8 @@ export const copy = {
     soundOn: "Sound on",
     soundOff: "Sound off",
     xp: "XP",
+    answerInEnglish: "Answer in English",
+    answerInSpanish: "Answer in Spanish",
   },
 } as const satisfies Record<Lang, Record<string, string>>;
 

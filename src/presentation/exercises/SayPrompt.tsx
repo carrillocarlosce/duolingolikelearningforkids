@@ -54,7 +54,7 @@ export function SayPrompt({
     if (disabled || listening || offline) return;
     onMic();
     setListening(true);
-    const transcript = await recognition.listen(exercise.lang);
+    const transcript = await recognition.listen(exercise.answerLang);
     setListening(false);
     if (!skipped.current) onResultRef.current(transcript);
   }
@@ -65,11 +65,13 @@ export function SayPrompt({
       <p className="text-7xl" aria-hidden="true">
         {exercise.emoji}
       </p>
-      <p className="text-center text-4xl font-bold">{exercise.promptText}</p>
+      <p lang={exercise.answerLang} className="text-center text-4xl font-bold">
+        {exercise.promptText}
+      </p>
       <button
         type="button"
         className="btn-3d btn-soft bg-white px-5 py-3 text-lg"
-        onClick={() => speech.speak(exercise.audioText, exercise.lang, SPEECH_RATE_NORMAL)}
+        onClick={() => speech.speak(exercise.audioText, exercise.answerLang, SPEECH_RATE_NORMAL)}
       >
         {t.listen}
       </button>

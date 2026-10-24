@@ -200,7 +200,11 @@ export function TraceWord({
       <p className="text-6xl" aria-hidden="true">
         {exercise.emoji}
       </p>
-      <p className="text-center text-4xl font-bold tracking-wide" aria-label={exercise.word}>
+      <p
+        lang={exercise.answerLang}
+        className="text-center text-4xl font-bold tracking-wide"
+        aria-label={exercise.word}
+      >
         {letters.map((glyph, glyphIndex) => (
           <span key={`${glyph}-${glyphIndex}`} className={glyphIndex === index ? "text-leaf" : "text-ink/35"}>
             {glyph}
@@ -212,6 +216,7 @@ export function TraceWord({
         ref={canvasRef}
         width={SIZE}
         height={SIZE}
+        lang={exercise.answerLang}
         className="trace-pad w-full max-w-[20rem] rounded-[2rem] bg-white shadow-[0_4px_0_#e4e4e4]"
         aria-label={`${t.trace} ${letter}`}
         onPointerDown={pointerDown}

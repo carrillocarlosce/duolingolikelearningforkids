@@ -6,7 +6,7 @@ import type { Answer } from "@/domain/exercises";
 import type { LessonPathItem } from "@/application/get-lesson-path";
 import { buildLessonExercises, mulberry32 } from "@/domain/build-lesson";
 import type { Exercise } from "@/domain/exercises";
-import type { Direction } from "@/domain/language";
+import type { Direction, Lang } from "@/domain/language";
 import { MAX_HEARTS } from "@/domain/scoring";
 import {
   completionSummary,
@@ -16,6 +16,7 @@ import {
   type SessionState,
 } from "@/domain/session";
 import type { Copy } from "@/presentation/i18n";
+import { AnswerLanguageBadge } from "@/presentation/components/AnswerLanguageBadge";
 import { SayPrompt } from "@/presentation/exercises/SayPrompt";
 import { TraceWord } from "@/presentation/exercises/TraceWord";
 import {
@@ -31,6 +32,7 @@ import { LessonReader } from "@/presentation/screens/LessonReader";
 type LessonPlayProps = {
   lesson: LessonPathItem;
   direction: Direction;
+  uiLang: Lang;
   t: Copy;
   speech: SpeechSynthPort;
   recognition: SpeechRecognitionPort;
@@ -42,6 +44,7 @@ type LessonPlayProps = {
 export function LessonPlay({
   lesson,
   direction,
+  uiLang,
   t,
   speech,
   recognition,
@@ -75,6 +78,10 @@ export function LessonPlay({
 
   const exercise = exercises[session.index];
   const locked = session.phase !== "question";
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [phase, exercise?.id]);
 
   const setTokens = useCallback((tokens: string[] | null) => {
     setDraft(tokens ? { type: "tokens", tokens } : null);
@@ -255,6 +262,7 @@ export function LessonPlay({
         {exercise ? (
           <ExerciseBody
             exercise={exercise}
+            uiLang={uiLang}
             t={t}
             draft={draft}
             disabled={locked}
@@ -361,6 +369,7 @@ export function LessonPlay({
 
 function ExerciseBody({
   exercise,
+  uiLang,
   t,
   draft,
   disabled,
@@ -377,6 +386,7 @@ function ExerciseBody({
   recognition,
 }: {
   exercise: Exercise;
+  uiLang: Lang;
   t: Copy;
   draft: Answer | null;
   disabled: boolean;
@@ -393,7 +403,8 @@ function ExerciseBody({
   recognition: SpeechRecognitionPort;
 }) {
   const selected = draft?.type === "choice" ? draft.choiceId : null;
-  switch (exercise.type) {
+  const body = (() => {
+    switch (exercise.type) {
     case "picture-word":
       return (
         <PictureWord exercise={exercise} t={t} selected={selected} disabled={disabled} onSelect={onSelect} />
@@ -446,4 +457,12 @@ function ExerciseBody({
     default:
       return null;
   }
+  })();
+
+  return (
+    <div className="flex flex-col gap-4">
+      <AnswerLanguageBadge exercise={exercise} uiLang={uiLang} t={t} speech={speech} />
+      {body}
+    </div>
+  );
 }

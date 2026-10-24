@@ -215,9 +215,14 @@ export function BuildSentence({
       <h2 className="text-center text-2xl font-bold">{t.build}</h2>
       {exercise.emoji ? <p className="text-center text-4xl">{exercise.emoji}</p> : null}
       {exercise.showPromptText ? (
-        <p className="rounded-2xl bg-white px-4 py-3 text-center text-2xl font-bold">{exercise.promptText}</p>
+        <p lang={exercise.promptLang} className="rounded-2xl bg-white px-4 py-3 text-center text-2xl font-bold">
+          {exercise.promptText}
+        </p>
       ) : null}
-      <div className="min-h-24 rounded-3xl border-2 border-dashed border-sky/40 bg-white/70 p-3">
+      <div
+        lang={exercise.answerLang}
+        className="min-h-24 rounded-3xl border-2 border-dashed border-sky/40 bg-white/70 p-3"
+      >
         <div className="flex flex-wrap gap-2">
           {used.map((tileIndex, position) => (
             <button
@@ -232,7 +237,7 @@ export function BuildSentence({
           ))}
         </div>
       </div>
-      <div className="flex flex-wrap gap-2">
+      <div lang={exercise.answerLang} className="flex flex-wrap gap-2">
         {exercise.tiles.map((tile, index) => (
           <button
             key={`${tile}-${index}`}
@@ -359,13 +364,19 @@ export function TypeAnswer({
       <h2 className="text-center text-2xl font-bold">{sentence ? t.typeSentence : t.typeWord}</h2>
       {exercise.emoji ? <p className="text-center text-6xl">{exercise.emoji}</p> : null}
       {!exercise.hidePromptText && exercise.promptText ? (
-        <p className="rounded-2xl bg-white px-4 py-3 text-center text-2xl font-bold">{exercise.promptText}</p>
+        <p lang={exercise.promptLang} className="rounded-2xl bg-white px-4 py-3 text-center text-2xl font-bold">
+          {exercise.promptText}
+        </p>
       ) : null}
       <input
         value={value}
         disabled={disabled}
-        autoCapitalize="off"
+        lang={exercise.answerLang}
+        inputMode="text"
+        enterKeyHint="done"
+        autoCapitalize="none"
         autoCorrect="off"
+        autoComplete="off"
         spellCheck={false}
         aria-label={sentence ? t.typeSentence : t.typeWord}
         onChange={(event) => {

@@ -110,6 +110,7 @@ function typeWord(item: VocabItem, prompt: Lang, answer: Lang, translating: bool
   return {
     id: "",
     type: "type",
+    promptLang: translating ? prompt : answer,
     answerLang: answer,
     promptText: translating ? item[prompt] : "",
     hidePromptText: !translating,
@@ -123,6 +124,7 @@ function typeSentence(sentence: Sentence, prompt: Lang, answer: Lang, translatin
   return {
     id: "",
     type: "type",
+    promptLang: translating ? prompt : answer,
     answerLang: answer,
     promptText: translating ? sentence[prompt] : sentence[answer],
     hidePromptText: false,
@@ -179,7 +181,7 @@ function traceWord(item: VocabItem, lang: Lang): Exercise {
     id: "",
     type: "trace",
     word: item[lang],
-    lang,
+    answerLang: lang,
     emoji: item.emoji,
   };
 }
@@ -190,7 +192,7 @@ function sayWord(item: VocabItem, lang: Lang): Exercise {
     type: "say",
     promptText: item[lang],
     audioText: item[lang],
-    lang,
+    answerLang: lang,
     accepted: acceptedForms(item, lang),
     emoji: item.emoji,
   };
