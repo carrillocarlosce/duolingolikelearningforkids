@@ -90,4 +90,8 @@ Progress, XP, hearts, the streak, UI language, and finished lessons stay in a da
 
 ## Browser notes
 
-The map itself needs a current Chrome, Edge, Firefox, or Safari (the Next.js 16 baseline). Text-to-speech and speech recognition are not in this version yet. They will use the browser’s built-in Web Speech APIs only — no third-party services — and the app will keep working when a voice or a microphone is missing.
+The app needs a current Chrome, Edge, Firefox, or Safari (the Next.js 16 baseline). Chrome on the Android tablet is the one that matters here.
+
+**Text-to-speech** uses the tablet’s own voices (`speechSynthesis`). A speaker button plays a word, and the turtle button plays it slowly. The app prefers a Peruvian Spanish voice (`es-PE`) when one is installed, then another Latin American Spanish voice, then any Spanish voice. English prefers a US voice. If that language has no installed voice, the word is written on the screen and the lesson continues. No audio file is downloaded. To hear Spanish, install a Spanish voice in the tablet’s text-to-speech settings.
+
+**Speech recognition** (“say it”) is not in this version yet. When it arrives it will use the browser’s built-in recognizer only, and the lessons will still run if the microphone or the network is unavailable. In Chrome that recognizer needs an internet connection even though the rest of the app does not.

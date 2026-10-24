@@ -41,6 +41,10 @@ export const copy = {
     outOfHearts: "Se acabaron los corazones. Vamos otra vez.",
     practiceHow: "Practicar",
     hearts: "corazones",
+    listen: "Escucha",
+    slow: "Despacio",
+    hearWord: "Escucha y toca",
+    noVoice: "Esta tablet no tiene esa voz. La palabra es:",
   },
   en: {
     unitLabel: "Unit 7",
@@ -82,6 +86,10 @@ export const copy = {
     outOfHearts: "No hearts left. Let's try again.",
     practiceHow: "Practice",
     hearts: "hearts",
+    listen: "Listen",
+    slow: "Slow",
+    hearWord: "Listen and tap",
+    noVoice: "This tablet has no voice for that language. The word is:",
   },
 } as const satisfies Record<Lang, Record<string, string>>;
 
