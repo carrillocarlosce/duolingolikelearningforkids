@@ -4,6 +4,21 @@ import { getVocab } from "@/domain/content/vocabulary";
 import { lessonCatalog } from "@/domain/lesson-path";
 
 describe("buildLessonExercises", () => {
+  it("starts with a say-it prompt for the answer language", () => {
+    const english = buildLessonExercises("sweet-treats", "en", mulberry32(1));
+    const said = english[0];
+    if (said?.type !== "say") throw new Error("missing say exercise");
+    expect(said.lang).toBe("en");
+    expect(said.promptText).toBe("cake");
+    expect(said.accepted).toContain("cake");
+
+    const spanish = buildLessonExercises("sweet-treats", "en-es", mulberry32(1));
+    const translated = spanish[0];
+    if (translated?.type !== "say") throw new Error("missing say exercise");
+    expect(translated.promptText).toBe("pastel");
+    expect(translated.accepted).toContain("torta");
+  });
+
   it("asks for the Spanish word when practicing English to Spanish", () => {
     const exercises = buildLessonExercises("sweet-treats", "en-es", mulberry32(1));
     const picture = exercises.find((exercise) => exercise.type === "picture-word");

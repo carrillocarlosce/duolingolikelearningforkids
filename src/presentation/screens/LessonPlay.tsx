@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import type { SpeechSynthPort } from "@/application/ports";
+import type { SpeechRecognitionPort, SpeechSynthPort } from "@/application/ports";
 import type { LessonPathItem } from "@/application/get-lesson-path";
 import { buildLessonExercises, mulberry32 } from "@/domain/build-lesson";
 import type { Answer, Exercise } from "@/domain/exercises";
@@ -15,6 +15,7 @@ import {
   type SessionState,
 } from "@/domain/session";
 import type { Copy } from "@/presentation/i18n";
+import { SayPrompt } from "@/presentation/exercises/SayPrompt";
 import { TraceWord } from "@/presentation/exercises/TraceWord";
 import {
   BuildSentence,
@@ -31,16 +32,20 @@ type LessonPlayProps = {
   direction: Direction;
   t: Copy;
   speech: SpeechSynthPort;
+  recognition: SpeechRecognitionPort;
   onExit: () => void;
   onFinished: (summary: { xp: number; stars: 1 | 2 | 3 }) => void;
 };
 
-export function LessonPlay({ lesson, direction, t, speech, onExit, onFinished }: LessonPlayProps) {
+export function LessonPlay({ lesson, direction, t, speech, recognition, onExit, onFinished }: LessonPlayProps) {
   const [seed] = useState(() => Math.floor(Math.random() * 1_000_000_000));
-  const exercises = useMemo(
-    () => buildLessonExercises(lesson.id, direction, mulberry32(seed)),
-    [lesson.id, direction, seed],
+  const [canSay] = useState(
+    () => recognition.supported && (typeof navigator === "undefined" || navigator.onLine),
   );
+  const exercises = useMemo(() => {
+    const built = buildLessonExercises(lesson.id, direction, mulberry32(seed));
+    return canSay ? built : built.filter((exercise) => exercise.type !== "say");
+  }, [canSay, direction, lesson.id, seed]);
   const [phase, setPhase] = useState<"intro" | "play" | "done" | "failed">("intro");
   const [session, setSession] = useState<SessionState>(() => startSession(lesson.id, MAX_HEARTS));
   const [draft, setDraft] = useState<Answer | null>(null);
@@ -139,9 +144,11 @@ export function LessonPlay({ lesson, direction, t, speech, onExit, onFinished }:
       ? "bg-leaf text-white"
       : grade?.status === "almost"
         ? "bg-sun text-ink"
-        : "bg-[#ff4b4b] text-white";
+        : grade?.status === "skipped"
+          ? "bg-sky text-white"
+          : "bg-[#ff4b4b] text-white";
   const progress = exercises.length === 0 ? 0 : ((session.index + (locked ? 1 : 0)) / exercises.length) * 100;
-  const selfCheck = exercise?.type === "match" || exercise?.type === "trace";
+  const selfCheck = exercise?.type === "match" || exercise?.type === "trace" || exercise?.type === "say";
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-xl flex-col px-4 pt-4 pb-36">
@@ -189,8 +196,14 @@ export function LessonPlay({ lesson, direction, t, speech, onExit, onFinished }:
                 setSession(submitAnswer(session, exercise, { type: "trace", coverage: 1 }));
               }
             }}
+            onSpoken={(transcript) => {
+              if (session.phase === "question" && exercise.type === "say") {
+                setSession(submitAnswer(session, exercise, { type: "speech", transcript }));
+              }
+            }}
             onEnter={check}
             speech={speech}
+            recognition={recognition}
           />
         ) : null}
       </div>
@@ -199,9 +212,15 @@ export function LessonPlay({ lesson, direction, t, speech, onExit, onFinished }:
         <div className={`fixed inset-x-0 bottom-0 z-20 px-4 pb-4 pt-5 ${banner}`}>
           <div className="mx-auto w-full max-w-xl">
             <p className="text-2xl font-bold">
-              {grade.status === "correct" ? t.correct : grade.status === "almost" ? t.almost : t.wrong}
+              {grade.status === "correct"
+                ? t.correct
+                : grade.status === "almost"
+                  ? t.almost
+                  : grade.status === "skipped"
+                    ? t.skipped
+                    : t.wrong}
             </p>
-            {grade.status !== "correct" && grade.canonical ? (
+            {grade.status !== "correct" && grade.status !== "skipped" && grade.canonical ? (
               <p className="text-xl font-bold">{grade.canonical}</p>
             ) : null}
             <button
@@ -257,8 +276,10 @@ function ExerciseBody({
   onText,
   onSolved,
   onTraced,
+  onSpoken,
   onEnter,
   speech,
+  recognition,
 }: {
   exercise: Exercise;
   t: Copy;
@@ -269,8 +290,10 @@ function ExerciseBody({
   onText: (text: string) => void;
   onSolved: () => void;
   onTraced: () => void;
+  onSpoken: (transcript: string) => void;
   onEnter: () => void;
   speech: SpeechSynthPort;
+  recognition: SpeechRecognitionPort;
 }) {
   const selected = draft?.type === "choice" ? draft.choiceId : null;
   switch (exercise.type) {
@@ -301,6 +324,17 @@ function ExerciseBody({
       );
     case "trace":
       return <TraceWord exercise={exercise} t={t} disabled={disabled} onSolved={onTraced} />;
+    case "say":
+      return (
+        <SayPrompt
+          exercise={exercise}
+          t={t}
+          speech={speech}
+          recognition={recognition}
+          disabled={disabled}
+          onResult={onSpoken}
+        />
+      );
     default:
       return null;
   }
