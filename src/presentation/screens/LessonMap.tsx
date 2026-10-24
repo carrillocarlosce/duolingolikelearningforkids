@@ -20,6 +20,8 @@ type LessonMapProps = {
   onOpenSettings: () => void;
   onOpenRestaurant: () => void;
   restaurantReady: boolean;
+  practiceDue: boolean;
+  onOpenPractice: () => void;
   onPress: () => void;
 };
 
@@ -36,6 +38,8 @@ export function LessonMap({
   onOpenSettings,
   onOpenRestaurant,
   restaurantReady,
+  practiceDue,
+  onOpenPractice,
   onPress,
 }: LessonMapProps) {
   return (
@@ -99,6 +103,24 @@ export function LessonMap({
               ✓
             </span>
           ) : null}
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            onPress();
+            onOpenPractice();
+          }}
+          className="mt-3 flex w-full items-center gap-3 rounded-2xl bg-leaf px-4 py-3 text-left text-white shadow-[0_4px_0_#3f9a00] transition active:translate-y-1 active:shadow-none"
+        >
+          <span className="text-3xl" aria-hidden="true" draggable={false}>
+            🥭
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-lg font-bold leading-tight">{t.practiceWithPipo}</span>
+            <span className="block text-sm font-semibold leading-tight">
+              {practiceDue ? t.practiceDue : t.practiceLater}
+            </span>
+          </span>
         </button>
         <div className="mt-4 grid grid-cols-3 gap-2">
           <p

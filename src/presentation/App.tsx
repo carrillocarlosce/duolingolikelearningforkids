@@ -8,6 +8,7 @@ import { recordLessonResult } from "@/application/record-lesson-result";
 import { saveRestaurant } from "@/application/save-restaurant";
 import { createAppServices, todayIsoDate } from "@/composition/create-services";
 import type { AudioLevels } from "@/domain/audio-settings";
+import type { Exercise, GradeStatus } from "@/domain/exercises";
 import type { Direction } from "@/domain/language";
 import { letterTracingEnabled, type LetterTracingMode } from "@/domain/letter-tracing";
 import {
@@ -18,11 +19,13 @@ import {
   type Profile,
 } from "@/domain/progress";
 import type { RestaurantPlan } from "@/domain/restaurant";
+import { dueReviewItems, scheduleFromGrade, type ReviewPick } from "@/domain/review";
 import { SPEECH_RATE_NORMAL } from "@/domain/speech";
 import { copy } from "@/presentation/i18n";
 import { PipoMark } from "@/presentation/components/PipoMark";
 import { LessonMap } from "@/presentation/screens/LessonMap";
 import { LessonPlay } from "@/presentation/screens/LessonPlay";
+import { PracticeWithPipo } from "@/presentation/screens/PracticeWithPipo";
 import { RestaurantPlay } from "@/presentation/screens/RestaurantPlay";
 import { SettingsPanel } from "@/presentation/screens/SettingsPanel";
 
@@ -34,6 +37,7 @@ export function App() {
   const [toast, setToast] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [restaurantOpen, setRestaurantOpen] = useState(false);
+  const [practicePicks, setPracticePicks] = useState<readonly ReviewPick[] | null>(null);
   const profileRef = useRef<Profile | null>(null);
   const saveQueue = useRef(Promise.resolve());
 
@@ -101,7 +105,8 @@ export function App() {
     if (nextNodes.filter((node) => node.unlocked).length > unlockedBefore) {
       window.setTimeout(() => services.sound.play("unlock"), 1500);
     }
-    setToast(copy[result.profile.uiLang].saved);
+    const doneCopy = copy[result.profile.uiLang];
+    setToast(id === "practice-with-pipo" ? doneCopy.practiceSaved : doneCopy.saved);
   }
 
   function persist(next: Profile) {
@@ -110,7 +115,7 @@ export function App() {
     setProfile(next);
     const progress = services.progress;
     saveQueue.current = saveQueue.current
-      .then(() => progress.saveProfile(next))
+      .then(() => progress.saveProfile(profileRef.current ?? next))
       .then(() => undefined)
       .catch(() => undefined);
   }
@@ -140,6 +145,14 @@ export function App() {
     const current = profileRef.current;
     if (!current) return;
     persist(withHeartCount(current, hearts));
+  }
+
+  function noteGrade(exercise: Exercise, status: GradeStatus) {
+    const current = profileRef.current;
+    if (!current) return;
+    const reviews = scheduleFromGrade(current.reviews, exercise, status, todayIsoDate());
+    if (reviews === current.reviews) return;
+    persist({ ...current, reviews });
   }
 
   function saveMenu(plan: RestaurantPlan) {
@@ -179,6 +192,23 @@ export function App() {
           onExit={() => setRestaurantOpen(false)}
           onSave={saveMenu}
         />
+      ) : practicePicks ? (
+        <PracticeWithPipo
+          picks={practicePicks}
+          direction={profile.direction}
+          uiLang={profile.uiLang}
+          letterTracing={letterTracingEnabled(profile.letterTracing, coarsePhone)}
+          hearts={profile.hearts}
+          streak={profile.streak}
+          t={t}
+          speech={services.speech}
+          recognition={services.recognition}
+          sound={services.sound}
+          onExit={() => setPracticePicks(null)}
+          onHearts={changeHearts}
+          onFinished={(summary) => void finishLesson("practice-with-pipo", summary)}
+          onGraded={noteGrade}
+        />
       ) : selected ? (
         <LessonPlay
           lesson={selected}
@@ -194,6 +224,7 @@ export function App() {
           onExit={() => setLessonId(null)}
           onHearts={changeHearts}
           onFinished={(summary) => void finishLesson(selected.id, summary)}
+          onGraded={noteGrade}
         />
       ) : (
         <>
@@ -213,6 +244,8 @@ export function App() {
             onOpenSettings={() => setSettingsOpen(true)}
             onOpenRestaurant={() => setRestaurantOpen(true)}
             restaurantReady={profile.restaurant !== null}
+            practiceDue={dueReviewItems(profile.reviews, todayIsoDate()).length > 0}
+            onOpenPractice={() => setPracticePicks(dueReviewItems(profile.reviews, todayIsoDate()))}
             onPress={() => services.sound.play("button")}
           />
         </>

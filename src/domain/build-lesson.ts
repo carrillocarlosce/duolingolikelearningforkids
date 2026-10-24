@@ -10,6 +10,7 @@ import type { Exercise, MatchSide } from "@/domain/exercises";
 import type { Direction, Lang } from "@/domain/language";
 import { lettersOf } from "@/domain/letter-strokes";
 import { getLesson, lessonCatalog, type LessonSummary } from "@/domain/lesson-path";
+import type { ReviewPick } from "@/domain/review";
 
 export function mulberry32(seed: number): () => number {
   let state = seed >>> 0;
@@ -471,4 +472,34 @@ export function buildLessonExercises(
   );
 
   return steps.map((step, index) => ({ ...step, id: `${lessonId}-${index}-${step.type}` }));
+}
+
+/** Daily Practice with Pipo. One step per due word or sentence, in the order the schedule chose. */
+export function buildReviewExercises(
+  picks: readonly ReviewPick[],
+  direction: Direction,
+  rng: () => number = Math.random,
+): Exercise[] {
+  const pool = vocabulary.map((item) => item.id);
+  const { prompt, answer, translating } = langs(direction);
+  const steps: Exercise[] = [];
+  let wordTurn = 0;
+  for (const pick of picks) {
+    if (pick.kind === "sentence") {
+      steps.push(buildSentence(getSentence(pick.id), answer, pool, rng));
+      continue;
+    }
+    const word = getVocab(pick.id);
+    steps.push(
+      wordTurn % 2 === 0
+        ? pictureWord(word, prompt, answer, translating, pool, rng)
+        : listenWord(word, prompt, answer, pool, rng),
+    );
+    wordTurn += 1;
+  }
+  const firstSentence = picks.find((pick) => pick.kind === "sentence");
+  const firstWord = picks.find((pick) => pick.kind === "word");
+  if (firstSentence) steps.unshift(saySentence(getSentence(firstSentence.id), answer));
+  else if (firstWord) steps.unshift(sayWord(getVocab(firstWord.id), answer));
+  return steps.map((step, index) => ({ ...step, id: `practice-with-pipo-${index}-${step.type}` }));
 }

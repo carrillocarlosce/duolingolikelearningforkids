@@ -1,5 +1,5 @@
 import type { SpeechSynthPort } from "@/application/ports";
-import { practiceCards } from "@/domain/content/practice-cards";
+import { practiceCards, type PracticeCard } from "@/domain/content/practice-cards";
 import type { LessonPathItem } from "@/application/get-lesson-path";
 import { SpeakButtons } from "@/presentation/components/SpeakButtons";
 import type { Copy } from "@/presentation/i18n";
@@ -9,13 +9,14 @@ type LessonReaderProps = {
   t: Copy;
   saving: boolean;
   actionLabel: string;
+  cards?: readonly PracticeCard[];
   speech: SpeechSynthPort;
   onBack: () => void;
   onFinish: () => void;
 };
 
-export function LessonReader({ lesson, t, saving, actionLabel, speech, onBack, onFinish }: LessonReaderProps) {
-  const cards = practiceCards(lesson.id);
+export function LessonReader({ lesson, t, saving, actionLabel, cards, speech, onBack, onFinish }: LessonReaderProps) {
+  const shown = cards ?? practiceCards(lesson.id);
   const note = !lesson.unlocked ? t.lockedNote : lesson.completed ? t.doneNote : t.currentNote;
 
   return (
@@ -41,7 +42,7 @@ export function LessonReader({ lesson, t, saving, actionLabel, speech, onBack, o
         <p className="mt-4 text-lg leading-snug">{note}</p>
       </header>
       <ul className="mt-4 flex flex-col gap-3">
-        {cards.map((card) => (
+        {shown.map((card) => (
           <li key={card.id} className="flex items-center gap-4 rounded-[1.5rem] bg-white px-4 py-4 shadow-[0_4px_0_#e4e4e4]">
             <span className="text-5xl" aria-hidden="true" draggable={false}>
               {card.emoji}

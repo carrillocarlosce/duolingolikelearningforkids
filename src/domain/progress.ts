@@ -2,6 +2,7 @@ import { readAudioLevels, type AudioLevels } from "@/domain/audio-settings";
 import type { Direction, Lang } from "@/domain/language";
 import { readLetterTracing, type LetterTracingMode } from "@/domain/letter-tracing";
 import { readRestaurant, type RestaurantPlan } from "@/domain/restaurant";
+import { readReviews, type ReviewRecord } from "@/domain/review";
 import { MAX_HEARTS } from "@/domain/scoring";
 
 export interface Profile extends AudioLevels {
@@ -18,6 +19,8 @@ export interface Profile extends AudioLevels {
   letterTracing: LetterTracingMode;
   /** Name and healthy menu for James's mom. Null until the child saves one. */
   restaurant: RestaurantPlan | null;
+  /** Words and sentences for the daily Practice with Pipo round. */
+  reviews: readonly ReviewRecord[];
 }
 
 export interface LessonProgress {
@@ -49,6 +52,7 @@ export function freshProfile(today: string): Profile {
     direction: "en",
     letterTracing: "auto",
     restaurant: null,
+    reviews: [],
     ...readAudioLevels({}),
   };
 }
@@ -74,6 +78,7 @@ export function normalizeProfile(input: unknown, today: string): Profile {
     letterTracing: readLetterTracing(raw.letterTracing),
     ...levels,
     restaurant: readRestaurant(raw.restaurant),
+    reviews: readReviews(raw.reviews),
   };
 }
 
