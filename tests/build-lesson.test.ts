@@ -5,6 +5,7 @@ import { getSentence } from "@/domain/content/sentences";
 import { answerLanguage, sentenceSource } from "@/domain/exercises";
 import type { Direction, Lang } from "@/domain/language";
 import { lessonCatalog } from "@/domain/lesson-path";
+import { foodRole } from "@/domain/restaurant";
 
 function answerFor(direction: Direction): Lang {
   return direction === "en" || direction === "es-en" ? "en" : "es";
@@ -141,7 +142,10 @@ describe("buildLessonExercises", () => {
           if (
             exercise.type === "picture-word" ||
             exercise.type === "word-picture" ||
-            exercise.type === "listen"
+            exercise.type === "listen" ||
+            exercise.type === "listen-only" ||
+            exercise.type === "fill" ||
+            exercise.type === "odd"
           ) {
             expect(exercise.choiceIds).toContain(exercise.itemId);
           }
@@ -177,7 +181,11 @@ describe("buildLessonExercises", () => {
             case "picture-word":
             case "word-picture":
             case "listen":
+            case "listen-only":
             case "match":
+            case "fill":
+            case "odd":
+            case "roleplay":
               expect(target).toBeNull();
               break;
             default: {
@@ -189,7 +197,21 @@ describe("buildLessonExercises", () => {
       }
     }
     expect([...seen].sort()).toEqual(
-      ["build", "listen", "match", "picture-word", "say", "spell", "trace", "type", "word-picture"].sort(),
+      [
+        "build",
+        "fill",
+        "listen",
+        "listen-only",
+        "match",
+        "odd",
+        "picture-word",
+        "roleplay",
+        "say",
+        "spell",
+        "trace",
+        "type",
+        "word-picture",
+      ].sort(),
     );
   });
 
@@ -249,7 +271,17 @@ describe("buildLessonExercises", () => {
     const heard = buildLessonExercises("sweet-listen", "en", mulberry32(3));
     expect(heard[0]?.type).toBe("say");
     expect(heard.filter((exercise) => exercise.type === "listen")).toHaveLength(3);
-    expect(heard.every((exercise) => exercise.type === "say" || exercise.type === "listen")).toBe(true);
+    expect(heard.filter((exercise) => exercise.type === "listen-only")).toHaveLength(1);
+    expect(
+      heard.every(
+        (exercise) => exercise.type === "say" || exercise.type === "listen" || exercise.type === "listen-only",
+      ),
+    ).toBe(true);
+    const pictures = heard.find((exercise) => exercise.type === "listen-only");
+    if (pictures?.type !== "listen-only") throw new Error("missing picture listen");
+    expect(pictures.audioText).toBe("cake");
+    expect(pictures.audioLang).toBe("en");
+    expect(pictures.choiceIds).toContain("cake");
 
     const spelled = buildLessonExercises("sweet-spell", "es", mulberry32(3));
     expect(spelled.filter((exercise) => exercise.type === "spell").map((exercise) =>
@@ -281,6 +313,14 @@ describe("buildLessonExercises", () => {
     expect(built.answerTokens).toEqual(["I", "don't", "like", "cake"]);
     expect(built.scene).toEqual({ mascot: "like", emojis: ["🍰"] });
     expect(liked.some((exercise) => exercise.type === "listen" || exercise.type === "picture-word")).toBe(false);
+    const blank = liked.find((exercise) => exercise.type === "fill");
+    if (blank?.type !== "fill") throw new Error("missing missing-word round");
+    expect(blank.sentenceId).toBe("dont-like-cake");
+    expect(blank.itemId).toBe("cake");
+    expect(blank.clozeText).toBe("I don't like ___");
+    expect(blank.speakText).toBe("I don't like cake");
+    expect(blank.answerLang).toBe("en");
+    expect(liked.some((exercise) => exercise.type === "roleplay")).toBe(false);
 
     const priced = buildLessonExercises("pattern-price", "es", mulberry32(4));
     const price = priced.find((exercise) => exercise.type === "build" && exercise.sentenceId === "price-apple");
@@ -313,5 +353,46 @@ describe("buildLessonExercises", () => {
     expect(challenge.some((exercise) => exercise.type === "listen")).toBe(true);
     expect(challenge.some((exercise) => exercise.type === "build")).toBe(true);
     expect(challenge.some((exercise) => exercise.type === "spell" || exercise.type === "trace")).toBe(false);
+  });
+
+  it("adds an odd one out and a seller round beside the matching pairs", () => {
+    const sweets = buildLessonExercises("sweet-treats", "en", mulberry32(5));
+    const odd = sweets.find((exercise) => exercise.type === "odd");
+    if (odd?.type !== "odd") throw new Error("missing odd one out");
+    expect(odd.promptText).toBe("Which one is not a sweet?");
+    expect(odd.answerText).toBe(getVocab(odd.itemId).en);
+    expect(odd.answerLang).toBe("en");
+    expect(foodRole(odd.itemId)).not.toBe("treat");
+    expect(odd.choiceIds.filter((id) => id !== odd.itemId).every((id) => foodRole(id) === "treat")).toBe(true);
+    expect(sweets.some((exercise) => exercise.type === "match")).toBe(true);
+    expect(sweets.some((exercise) => exercise.type === "listen-only")).toBe(true);
+
+    const spanish = buildLessonExercises("sweet-treats", "es", mulberry32(5));
+    const oddEs = spanish.find((exercise) => exercise.type === "odd");
+    if (oddEs?.type !== "odd") throw new Error("missing Spanish odd one out");
+    expect(oddEs.promptText).toBe("¿Cuál no es un dulce?");
+    expect(oddEs.answerLang).toBe("es");
+
+    const please = buildLessonExercises("pattern-please", "en", mulberry32(4));
+    const sold = please.find((exercise) => exercise.type === "roleplay");
+    if (sold?.type !== "roleplay") throw new Error("missing seller round");
+    expect(sold.answerId).toBe("have-milk");
+    expect(sold.promptText).toBe("What would you like?");
+    expect(sold.replyText).toBe("Here you go!");
+    expect(sold.speakText).toBe("Can I have milk, please?");
+    expect(sold.promptLang).toBe("en");
+    expect(sold.choiceIds).toContain("have-milk");
+    expect(sold.scene.mascot).toBe("shop");
+
+    const asked = buildLessonExercises("pattern-please", "es", mulberry32(4));
+    const soldEs = asked.find((exercise) => exercise.type === "roleplay");
+    if (soldEs?.type !== "roleplay") throw new Error("missing Spanish seller round");
+    expect(soldEs.promptText).toBe("¿Qué quieres?");
+    expect(soldEs.replyText).toBe("¡Aquí tienes!");
+    expect(soldEs.speakText).toBe("¿Me da leche, por favor?");
+
+    const picnic = buildLessonExercises("mix-picnic", "en", mulberry32(2));
+    expect(picnic.some((exercise) => exercise.type === "odd")).toBe(true);
+    expect(picnic.some((exercise) => exercise.type === "listen-only")).toBe(false);
   });
 });

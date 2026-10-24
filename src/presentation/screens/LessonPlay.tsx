@@ -25,9 +25,13 @@ import { SpellWord } from "@/presentation/exercises/SpellWord";
 import { TraceWord } from "@/presentation/exercises/TraceWord";
 import {
   BuildSentence,
+  FillBlank,
+  ListenOnly,
   ListenPick,
   MatchPairs,
+  OddOneOut,
   PictureWord,
+  SellerRoleplay,
   TypeAnswer,
   WordPicture,
 } from "@/presentation/exercises/views";
@@ -520,6 +524,50 @@ function ExerciseBody({
           onSelect={onSelect}
         />
       );
+    case "fill":
+      return (
+        <FillBlank
+          exercise={exercise}
+          t={t}
+          speech={speech}
+          selected={selected}
+          disabled={disabled}
+          onSelect={onSelect}
+        />
+      );
+    case "odd":
+      return (
+        <OddOneOut
+          exercise={exercise}
+          t={t}
+          speech={speech}
+          selected={selected}
+          disabled={disabled}
+          onSelect={onSelect}
+        />
+      );
+    case "listen-only":
+      return (
+        <ListenOnly
+          exercise={exercise}
+          t={t}
+          speech={speech}
+          selected={selected}
+          disabled={disabled}
+          onSelect={onSelect}
+        />
+      );
+    case "roleplay":
+      return (
+        <SellerRoleplay
+          exercise={exercise}
+          t={t}
+          speech={speech}
+          selected={selected}
+          disabled={disabled}
+          onSelect={onSelect}
+        />
+      );
     case "trace":
       return (
         <TraceWord exercise={exercise} t={t} disabled={disabled} onSolved={onTraced} />
@@ -548,8 +596,11 @@ function ExerciseBody({
           onMic={onMic}
         />
       );
-    default:
+    default: {
+      const unexpected: never = exercise;
+      void unexpected;
       return null;
+    }
   }
   })();
 

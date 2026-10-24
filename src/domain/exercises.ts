@@ -105,6 +105,50 @@ export type Exercise =
     }
   | {
       id: string;
+      /** Tap the word that fills the blank. The frame is in the answer language. */
+      type: "fill";
+      sentenceId: string;
+      itemId: string;
+      choiceIds: string[];
+      answerLang: Lang;
+      clozeText: string;
+      speakText: string;
+      scene: SentenceScene;
+    }
+  | {
+      id: string;
+      /** Tap the picture that is not in the group. */
+      type: "odd";
+      itemId: string;
+      choiceIds: string[];
+      answerLang: Lang;
+      promptText: string;
+      /** The food that does not belong, in the answer language. */
+      answerText: string;
+    }
+  | {
+      id: string;
+      /** Hear the word and tap the picture. No written choices. */
+      type: "listen-only";
+      itemId: string;
+      choiceIds: string[];
+      audioLang: Lang;
+      audioText: string;
+    }
+  | {
+      id: string;
+      /** Pipo is the seller. The child picks what to say. */
+      type: "roleplay";
+      answerId: string;
+      choiceIds: string[];
+      promptLang: Lang;
+      promptText: string;
+      replyText: string;
+      speakText: string;
+      scene: SentenceScene;
+    }
+  | {
+      id: string;
       type: "say";
       promptText: string;
       audioText: string;
@@ -180,7 +224,11 @@ export function answerLanguage(exercise: Exercise): Lang | null {
     case "picture-word":
     case "word-picture":
     case "listen":
+    case "listen-only":
     case "match":
+    case "fill":
+    case "odd":
+    case "roleplay":
       return null;
     default: {
       const unexpected: never = exercise;

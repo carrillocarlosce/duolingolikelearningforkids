@@ -3,6 +3,7 @@ import {
   acceptedSentenceForms,
   getSentence,
   otherLang,
+  sentences,
   sentenceTokens,
   type Sentence,
 } from "@/domain/content/sentences";
@@ -11,6 +12,7 @@ import type { Direction, Lang } from "@/domain/language";
 import { lettersOf } from "@/domain/letter-strokes";
 import { getLesson, lessonCatalog, type LessonSummary } from "@/domain/lesson-path";
 import type { ReviewPick } from "@/domain/review";
+import { foodRole, type FoodRole } from "@/domain/restaurant";
 
 export function mulberry32(seed: number): () => number {
   let state = seed >>> 0;
@@ -337,6 +339,106 @@ function matchPairs(items: readonly VocabItem[], direction: Direction, rng: () =
   return { id: "", type: "match", left, right };
 }
 
+function groupPrompt(role: FoodRole, answer: Lang): string {
+  if (answer === "es") {
+    if (role === "treat") return "¿Cuál no es un dulce?";
+    if (role === "healthy") return "¿Cuál no es una comida sana?";
+    return "¿Cuál no es de todos los días?";
+  }
+  if (role === "treat") return "Which one is not a sweet?";
+  if (role === "healthy") return "Which one is not a healthy food?";
+  return "Which one is not an everyday food?";
+}
+
+function oddOneOut(
+  words: readonly VocabItem[],
+  pool: readonly string[],
+  answer: Lang,
+  rng: () => number,
+): Exercise | null {
+  if (words.length === 0) return null;
+  const counts = new Map<FoodRole, number>();
+  for (const word of words) {
+    const role = foodRole(word.id);
+    counts.set(role, (counts.get(role) ?? 0) + 1);
+  }
+  let group: FoodRole = "treat";
+  let best = 0;
+  for (const [role, count] of counts) {
+    if (count > best) {
+      group = role;
+      best = count;
+    }
+  }
+  const insiders = words.filter((word) => foodRole(word.id) === group).map((word) => word.id);
+  for (const id of pool) {
+    if (insiders.length >= 3) break;
+    if (foodRole(id) === group && !insiders.includes(id)) insiders.push(id);
+  }
+  if (insiders.length < 2) return null;
+  const outsiderId = shuffled(
+    pool.filter((id) => foodRole(id) !== group && !insiders.includes(id)),
+    rng,
+  )[0];
+  if (!outsiderId) return null;
+  return {
+    id: "",
+    type: "odd",
+    itemId: outsiderId,
+    choiceIds: shuffled([...insiders.slice(0, 3), outsiderId], rng),
+    answerLang: answer,
+    promptText: groupPrompt(group, answer),
+    answerText: getVocab(outsiderId)[answer],
+  };
+}
+
+function listenOnly(item: VocabItem, prompt: Lang, pool: readonly string[], rng: () => number): Exercise {
+  return {
+    id: "",
+    type: "listen-only",
+    itemId: item.id,
+    choiceIds: choices(item.id, pool, rng),
+    audioLang: prompt,
+    audioText: item[prompt],
+  };
+}
+
+function fillBlank(line: Sentence, answer: Lang, pool: readonly string[], rng: () => number): Exercise | null {
+  const itemId = line.imageIds[0];
+  if (!line.cloze || !itemId) return null;
+  return {
+    id: "",
+    type: "fill",
+    sentenceId: line.id,
+    itemId,
+    choiceIds: choices(itemId, pool, rng),
+    answerLang: answer,
+    clozeText: line.cloze[answer],
+    speakText: line[answer],
+    scene: line.scene.mascot ? { mascot: line.scene.mascot, emojis: [] } : { emojis: [...line.scene.emojis] },
+  };
+}
+
+function sellerRound(lines: readonly Sentence[], answer: Lang, rng: () => number): Exercise | null {
+  const order = lines.find((line) => line.scene.mascot === "want" || line.scene.mascot === "shop");
+  if (!order) return null;
+  const distractors = shuffled(
+    sentences.filter((line) => line.id !== order.id),
+    rng,
+  ).slice(0, 2);
+  return {
+    id: "",
+    type: "roleplay",
+    answerId: order.id,
+    choiceIds: shuffled([order.id, ...distractors.map((line) => line.id)], rng),
+    promptLang: answer,
+    promptText: answer === "es" ? "¿Qué quieres?" : "What would you like?",
+    replyText: answer === "es" ? "¡Aquí tienes!" : "Here you go!",
+    speakText: order[answer],
+    scene: { mascot: "shop", emojis: [...order.scene.emojis] },
+  };
+}
+
 export interface LessonBuildOptions {
   /** When false, the writing lesson uses spell-the-word instead of tracing. Defaults to tracing. */
   letterTracing?: boolean;
@@ -361,6 +463,10 @@ function skillExercises(
     case "recognize":
       words.slice(0, 5).forEach((word) => steps.push(pictureWord(word, prompt, answer, translating, pool, rng)));
       words.slice(0, 2).forEach((word) => steps.push(wordPicture(word, prompt, pool, rng)));
+      {
+        const odd = oddOneOut(words, pool, answer, rng);
+        if (odd) steps.push(odd);
+      }
       if (words[0]) steps.unshift(sayWord(words[0], answer));
       break;
     case "listen":
@@ -371,6 +477,7 @@ function skillExercises(
             : listenWord(word, prompt, answer, pool, rng),
         ),
       );
+      if (words[0]) steps.push(listenOnly(words[0], prompt, pool, rng));
       if (lines[0]) steps.unshift(saySentence(lines[0], answer));
       else if (words[0]) steps.unshift(sayWord(words[0], answer));
       break;
@@ -392,6 +499,17 @@ function skillExercises(
     case "sentence":
       lines.slice(0, 3).forEach((line) => steps.push(buildSentence(line, answer, pool, rng)));
       lines.slice(0, 2).forEach((line) => steps.push(typeSentence(line, prompt, answer, translating)));
+      for (const line of lines) {
+        const blank = fillBlank(line, answer, pool, rng);
+        if (blank) {
+          steps.push(blank);
+          break;
+        }
+      }
+      {
+        const sold = sellerRound(lines, answer, rng);
+        if (sold) steps.push(sold);
+      }
       if (lines[0]) steps.unshift(saySentence(lines[0], answer));
       break;
     case "checkpoint":
@@ -445,6 +563,17 @@ export function buildLessonExercises(
     lines.slice(0, 3).forEach((line) => steps.push(buildSentence(line, answer, pool, rng)));
     lines.slice(0, 2).forEach((line) => steps.push(typeSentence(line, prompt, answer, translating)));
     if (words.length >= 2) steps.push(matchPairs(words, direction, rng));
+    for (const line of lines) {
+      const blank = fillBlank(line, answer, pool, rng);
+      if (blank) {
+        steps.push(blank);
+        break;
+      }
+    }
+    {
+      const sold = sellerRound(lines, answer, rng);
+      if (sold) steps.push(sold);
+    }
   } else if (lesson.kind === "writing") {
     const traceLetters = options.letterTracing !== false;
     words.slice(0, 3).forEach((word) => {
@@ -459,6 +588,9 @@ export function buildLessonExercises(
     words.slice(0, 2).forEach((word) => steps.push(wordPicture(word, prompt, pool, rng)));
     if (words[0]) steps.push(typeWord(words[0], prompt, answer, translating));
     if (words.length >= 2) steps.push(matchPairs(words, direction, rng));
+    const odd = oddOneOut(words, pool, answer, rng);
+    if (odd) steps.push(odd);
+    if (words[0]) steps.push(listenOnly(words[0], prompt, pool, rng));
   }
 
   if (lesson.kind === "sentences" && lines[0]) steps.unshift(saySentence(lines[0], answer));
