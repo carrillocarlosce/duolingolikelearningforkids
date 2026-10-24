@@ -48,6 +48,7 @@ export type Exercise =
       tiles: string[];
       answerTokens: string[];
       answerText: string;
+      emoji?: string;
     }
   | {
       id: string;

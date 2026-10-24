@@ -4,7 +4,7 @@ A bright, offline-friendly web app for a first grader learning the food words fr
 
 Pipo is an original mango character. This is not Duolingo and it does not use Duolingo's owl or brand assets.
 
-Open a lesson to read each food word and sentence in English and in Spanish. When you tap **¡Listo, ya leí!**, that lesson is saved on the tablet and the next one unlocks. The first lesson starts open.
+Open a lesson, read the words, then practice: tap the word for a picture, tap the picture for a word, match pairs, build a sentence from tiles, and type the word or sentence. A small typo still counts, and the screen shows the spelling. Pick EN→ES, ES→EN, English only, or Spanish only on the map. Finishing the round saves the lesson and opens the next one.
 
 ## Run it locally
 

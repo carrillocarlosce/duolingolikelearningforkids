@@ -44,6 +44,10 @@ a {
   box-shadow: none;
 }
 
+.btn-3d:disabled {
+  box-shadow: 0 4px 0 #cfcfcf;
+}
+
 .btn-soft {
   --btn-shadow: #d5d5d5;
 }
@@ -66,13 +70,31 @@ a {
   animation: bob 2.2s ease-in-out infinite;
 }
 
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-8px);
+  }
+  75% {
+    transform: translateX(8px);
+  }
+}
+
+.shake {
+  animation: shake 0.35s linear;
+}
+
 :focus-visible {
   outline: 3px solid #1cb0f6;
   outline-offset: 3px;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bob {
+  .bob,
+  .shake {
     animation: none;
   }
 }
