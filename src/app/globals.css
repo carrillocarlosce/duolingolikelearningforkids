@@ -1,0 +1,70 @@
+@import "tailwindcss";
+@import "@fontsource/fredoka/latin-500.css";
+@import "@fontsource/fredoka/latin-700.css";
+@import "@fontsource/fredoka/latin-ext-500.css";
+@import "@fontsource/fredoka/latin-ext-700.css";
+
+@theme {
+  --font-sans: "Fredoka", ui-rounded, "Segoe UI", sans-serif;
+  --color-leaf: #58cc02;
+  --color-leaf-dark: #3f9a00;
+  --color-sky: #1cb0f6;
+  --color-sky-dark: #1899d6;
+  --color-sun: #ffc800;
+  --color-ink: #3c3c3c;
+  --color-cream: #fff4dc;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  background:
+    radial-gradient(circle at 12% -8%, #ffffff 0, transparent 36%),
+    linear-gradient(180deg, #c8efff 0%, #fff6e8 42%, #e5f8cc 100%);
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-3d {
+  border-radius: 1rem;
+  font-weight: 700;
+  box-shadow: 0 4px 0 var(--btn-shadow, #1899d6);
+}
+
+.btn-3d:active {
+  transform: translateY(4px);
+  box-shadow: none;
+}
+
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.bob {
+  animation: bob 2.2s ease-in-out infinite;
+}
+
+:focus-visible {
+  outline: 3px solid #1cb0f6;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bob {
+    animation: none;
+  }
+}
