@@ -6,6 +6,8 @@ Pipo is an original mango character. This is not Duolingo and it does not use Du
 
 Open a lesson, read the words, then practice: tap the word for a picture, tap the picture for a word, match pairs, build a sentence from tiles, and type the word or sentence. The writing lesson traces each letter on a tablet: numbered dots, arrows, and a thick guide. A phone spells the word with letter tiles instead, until a parent turns letter tracing on in settings. Tracing is practice and does not cost a heart. Typing, tile building, tracing, spelling, and the say-it step show a badge with a flag and words in the answer language, and a speaker that reads that instruction. Sentence tiles show the sentence in the other language, a picture of the idea (not only the food), empty slots for each word, and a speaker for the sentence to build. A partial sentence is marked almost, and the full sentence stays on screen. A small typo still counts, and the screen shows the spelling. Pick EN→ES, ES→EN, English only, or Spanish only on the map. Finishing the round saves the lesson and opens the next one.
 
+The map also opens the restaurant, which is always available. James's mom needs a name and a healthy menu. The child taps one Unit 7 food for the name ("My restaurant is called Apple" / "Mi restaurante se llama Manzana") and three foods for the menu. The name and the menu stay on screen in English and in Spanish, each with a language badge and a speaker that uses the tablet's own voice. A healthy menu needs at least two healthy foods (fruit, milk, salad, chicken, and the other foods marked healthy) and at most one treat (cake, ice cream, cookies, hamburger, or hot dog). Juice, pizza, pasta, and a sandwich can be on the menu, but they do not count as a healthy food. A menu that is too short or too full of treats gets another try and does not spend a heart. The name and menu are saved in IndexedDB on the tablet.
+
 ## Run it locally
 
 You need Node.js 22.
@@ -75,8 +77,8 @@ src/domain         lessons and progress rules, no React and no browser APIs
 src/infrastructure adapters that implement the ports
 ```
 
-- **Domain** holds the Unit 7 words and sentences, answer checking (accents, alternates such as torta/queque and fideos/pasta, small typos), hearts, XP, streaks, and the lesson session rules.
-- **Application** builds the map (`getLessonPath`), loads the saved profile, and records a finished lesson. It talks to storage only through `ProgressRepository`. `SpeechSynthPort` and `SpeechRecognitionPort` are ready for the speech adapters.
+- **Domain** holds the Unit 7 words and sentences, answer checking (accents, alternates such as torta/queque and fideos/pasta, small typos), hearts, XP, streaks, the lesson session rules, and the healthy-menu rules for the restaurant.
+- **Application** builds the map (`getLessonPath`), loads the saved profile, records a finished lesson, and saves the restaurant name and menu. It talks to storage only through `ProgressRepository`. `SpeechSynthPort` and `SpeechRecognitionPort` are ready for the speech adapters.
 - **Infrastructure** saves progress in IndexedDB with the `idb` package. If the tablet cannot open a database, an in-memory repository is used for that visit and the screen says so. Spoken words use the device `speechSynthesis` voices. “Say it” uses `SpeechRecognition` when the browser has it.
 - **Presentation** renders the map, the reading cards, and the practice round. A production build registers the service worker. Dev server visits do not. It receives services from the composition root.
 

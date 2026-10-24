@@ -1,6 +1,7 @@
 import { openDB, type DBSchema, type IDBPDatabase } from "idb";
 import type { ProgressRepository } from "@/application/ports";
 import { freshProfile, normalizeProfile, type LessonProgress, type Profile } from "@/domain/progress";
+import { restaurantStorageMatches } from "@/domain/restaurant";
 import { localISODate } from "@/infrastructure/clock";
 
 interface MarketDB extends DBSchema {
@@ -92,6 +93,7 @@ function needsLevelMigration(stored: Profile, normalized: Profile): boolean {
     stored.effectsVolume !== normalized.effectsVolume ||
     stored.voiceVolume !== normalized.voiceVolume ||
     stored.voiceSpeed !== normalized.voiceSpeed ||
-    stored.letterTracing !== normalized.letterTracing
+    stored.letterTracing !== normalized.letterTracing ||
+    !restaurantStorageMatches(stored.restaurant, normalized.restaurant)
   );
 }
