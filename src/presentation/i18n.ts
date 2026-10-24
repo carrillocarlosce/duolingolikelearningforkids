@@ -47,6 +47,10 @@ export const copy = {
     noVoice: "Esta tablet no tiene esa voz. La palabra es:",
     trace: "Traza la letra",
     traceHint: "Sigue la letra con el dedo",
+    say: "Dilo en voz alta",
+    sayHint: "Toca el micrófono y di la palabra",
+    listening: "Te escucho…",
+    skipped: "Está bien, seguimos.",
   },
   en: {
     unitLabel: "Unit 7",
@@ -94,6 +98,10 @@ export const copy = {
     noVoice: "This tablet has no voice for that language. The word is:",
     trace: "Trace the letter",
     traceHint: "Follow the letter with your finger",
+    say: "Say it out loud",
+    sayHint: "Tap the microphone and say the word",
+    listening: "I'm listening…",
+    skipped: "That's ok, let's keep going.",
   },
 } as const satisfies Record<Lang, Record<string, string>>;
 

@@ -184,6 +184,18 @@ function traceWord(item: VocabItem, lang: Lang): Exercise {
   };
 }
 
+function sayWord(item: VocabItem, lang: Lang): Exercise {
+  return {
+    id: "",
+    type: "say",
+    promptText: item[lang],
+    audioText: item[lang],
+    lang,
+    accepted: acceptedForms(item, lang),
+    emoji: item.emoji,
+  };
+}
+
 function listenWord(
   item: VocabItem,
   prompt: Lang,
@@ -215,7 +227,7 @@ function matchPairs(items: readonly VocabItem[], direction: Direction, rng: () =
   return { id: "", type: "match", left, right };
 }
 
-/** Practice round for one lesson. Speaking aloud is added later. */
+/** Practice round for one lesson. The say-it step is hidden when the mic or network is missing. */
 export function buildLessonExercises(
   lessonId: string,
   direction: Direction,
@@ -248,6 +260,7 @@ export function buildLessonExercises(
     if (words.length >= 2) steps.push(matchPairs(words, direction, rng));
   }
 
+  if (words[0]) steps.unshift(sayWord(words[0], answer));
   words.slice(0, 2).forEach((word) => steps.push(listenWord(word, prompt, answer, pool, rng)));
 
   return steps.map((step, index) => ({ ...step, id: `${lessonId}-${index}-${step.type}` }));

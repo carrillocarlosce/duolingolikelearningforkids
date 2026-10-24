@@ -61,7 +61,7 @@ Use Chrome on the Android tablet.
 
 After that first online visit, the lesson map and exercises open with the network off. Turn on airplane mode and open the icon again to check. If the first visit was interrupted, open the site online one more time, then try offline.
 
-Progress, XP, hearts, and finished lessons stay in IndexedDB on the tablet. Nothing is uploaded. The cache holds the pages, scripts, styles, font, icons, and manifest. A newer deploy replaces the cache the next time the tablet is online. Text-to-speech uses a voice already installed on the device, so it does not download audio. Speech recognition is not in this version; the lessons do not need it.
+Progress, XP, hearts, and finished lessons stay in IndexedDB on the tablet. Nothing is uploaded. The cache holds the pages, scripts, styles, font, icons, and manifest. A newer deploy replaces the cache the next time the tablet is online. Text-to-speech uses a voice already installed on the device, so it does not download audio. The optional “say it” step uses the browser’s speech recognizer. In Chrome that recognizer needs the internet; if the tablet is offline, or the browser has no microphone API, that step is left out and the rest of the lesson still runs.
 
 ## Architecture
 
@@ -77,7 +77,7 @@ src/infrastructure adapters that implement the ports
 
 - **Domain** holds the Unit 7 words and sentences, answer checking (accents, alternates such as torta/queque and fideos/pasta, small typos), hearts, XP, streaks, and the lesson session rules.
 - **Application** builds the map (`getLessonPath`), loads the saved profile, and records a finished lesson. It talks to storage only through `ProgressRepository`. `SpeechSynthPort` and `SpeechRecognitionPort` are ready for the speech adapters.
-- **Infrastructure** saves progress in IndexedDB with the `idb` package. If the tablet cannot open a database, an in-memory repository is used for that visit and the screen says so. Spoken words use the device `speechSynthesis` voices. The recognition adapter still reports “not available”.
+- **Infrastructure** saves progress in IndexedDB with the `idb` package. If the tablet cannot open a database, an in-memory repository is used for that visit and the screen says so. Spoken words use the device `speechSynthesis` voices. “Say it” uses `SpeechRecognition` when the browser has it.
 - **Presentation** renders the map, the reading cards, and the practice round. A production build registers the service worker. Dev server visits do not. It receives services from the composition root.
 
 Progress, XP, hearts, the streak, UI language, and finished lessons stay in a database named `pipos-market` on the device. Nothing is sent to a server. A new calendar day refills hearts. Finishing a lesson on the next day continues the streak; skipping a day starts it again at one. The heart meter and streak are saved now and shown on screen in a later update.
@@ -102,4 +102,4 @@ The app needs a current Chrome, Edge, Firefox, or Safari (the Next.js 16 baselin
 
 **Text-to-speech** uses the tablet’s own voices (`speechSynthesis`). A speaker button plays a word, and the turtle button plays it slowly. The app prefers a Peruvian Spanish voice (`es-PE`) when one is installed, then another Latin American Spanish voice, then any Spanish voice. English prefers a US voice. If that language has no installed voice, the word is written on the screen and the lesson continues. No audio file is downloaded. To hear Spanish, install a Spanish voice in the tablet’s text-to-speech settings.
 
-**Speech recognition** (“say it”) is not in this version yet. When it arrives it will use the browser’s built-in recognizer only, and the lessons will still run if the microphone or the network is unavailable. In Chrome that recognizer needs an internet connection even though the rest of the app does not.
+**Speech recognition** (“say it”) uses the browser’s built-in recognizer only (`SpeechRecognition` / `webkitSpeechRecognition`). The button is shown only when that API exists and the tablet is online. In Chrome and Edge the recognizer contacts Google, so it needs an internet connection even though the rest of the app works offline. A missed or empty guess is skipped and does not cost a heart. Firefox and some installed home-screen views have no recognizer; the lesson simply starts on the next exercise. Allow the microphone when Chrome asks.

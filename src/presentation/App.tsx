@@ -95,6 +95,7 @@ export function App() {
           direction={profile.direction}
           t={t}
           speech={services.speech}
+          recognition={services.recognition}
           onExit={() => setLessonId(null)}
           onFinished={(summary) => void finishLesson(selected.id, summary)}
         />
