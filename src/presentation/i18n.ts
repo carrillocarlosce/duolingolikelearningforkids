@@ -16,6 +16,11 @@ export const copy = {
     currentNote: "Esta es tu lección de ahora.",
     doneNote: "Ya terminaste esta lección. Puedes volver a mirarla.",
     loading: "Pipo está abriendo el mercado…",
+    back: "Volver",
+    readDone: "¡Listo, ya leí!",
+    saved: "¡Muy bien! La siguiente lección está abierta.",
+    readHeading: "Lee en voz bajita",
+    notSaved: "En esta visita el progreso no se guarda en la tablet.",
   },
   en: {
     unitLabel: "Unit 7",
@@ -32,6 +37,11 @@ export const copy = {
     currentNote: "This is your lesson right now.",
     doneNote: "You finished this lesson. You can look again.",
     loading: "Pipo is opening the market…",
+    back: "Back",
+    readDone: "I read it!",
+    saved: "Great! The next lesson is open.",
+    readHeading: "Read quietly",
+    notSaved: "This visit cannot save progress on the tablet.",
   },
 } as const satisfies Record<Lang, Record<string, string>>;
 

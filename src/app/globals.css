@@ -44,6 +44,14 @@ a {
   box-shadow: none;
 }
 
+.btn-soft {
+  --btn-shadow: #d5d5d5;
+}
+
+.btn-leaf {
+  --btn-shadow: #3f9a00;
+}
+
 @keyframes bob {
   0%,
   100% {

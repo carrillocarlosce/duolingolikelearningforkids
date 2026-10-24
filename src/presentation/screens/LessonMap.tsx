@@ -69,7 +69,14 @@ export function LessonMap({ nodes, t, onSelect }: LessonMapProps) {
                       {!node.unlocked ? ` ${t.locked}` : ""}
                       {node.completed ? ` ${t.done}` : ""}
                     </span>
-                    {!node.unlocked ? (
+                    {node.completed ? (
+                      <span
+                        className="absolute -right-1 -bottom-1 grid size-8 place-items-center rounded-full bg-sun text-lg font-bold text-ink"
+                        aria-hidden="true"
+                      >
+                        ✓
+                      </span>
+                    ) : !node.unlocked ? (
                       <span
                         className="absolute -right-1 -bottom-1 grid size-8 place-items-center rounded-full bg-slate-400 text-base text-white"
                         aria-hidden="true"

@@ -4,7 +4,7 @@ A bright, offline-friendly web app for a first grader learning the food words fr
 
 Pipo is an original mango character. This is not Duolingo and it does not use Duolingo's owl or brand assets.
 
-This version is the lesson map for the unit: ten lessons, the first one open, the rest waiting until the one before them is finished. Practice activities are added in later updates.
+Open a lesson to read each food word and sentence in English and in Spanish. When you tap **¡Listo, ya leí!**, that lesson is saved on the tablet and the next one unlocks. The first lesson starts open.
 
 ## Run it locally
 
@@ -67,10 +67,12 @@ src/domain         lessons and progress rules, no React and no browser APIs
 src/infrastructure adapters that implement the ports
 ```
 
-- **Domain** knows the Unit 7 lesson order and which lesson is unlocked.
-- **Application** turns that into the path the map renders (`getLessonPath`) and declares `ProgressRepository`, `SpeechSynthPort`, and `SpeechRecognitionPort`.
-- **Infrastructure** currently ships an in-memory progress repository and speech adapters that report “not available”. IndexedDB and the Web Speech API replace those adapters without changing the domain.
-- **Presentation** renders the map. It receives services from the composition root.
+- **Domain** holds the Unit 7 words and sentences, answer checking (accents, alternates such as torta/queque and fideos/pasta, small typos), hearts, XP, streaks, and the lesson session rules.
+- **Application** builds the map (`getLessonPath`), loads the saved profile, and records a finished lesson. It talks to storage only through `ProgressRepository`. `SpeechSynthPort` and `SpeechRecognitionPort` are ready for the speech adapters.
+- **Infrastructure** saves progress in IndexedDB with the `idb` package. If the tablet cannot open a database, an in-memory repository is used for that visit and the screen says so. Speech adapters still report “not available”.
+- **Presentation** renders the map and the reading cards. It receives services from the composition root.
+
+Progress, XP, hearts, the streak, UI language, and finished lessons stay in a database named `pipos-market` on the device. Nothing is sent to a server. A new calendar day refills hearts. Finishing a lesson on the next day continues the streak; skipping a day starts it again at one. The heart meter and streak are saved now and shown on screen in a later update.
 
 `tests/architecture.test.ts` fails the build if those import rules are broken.
 

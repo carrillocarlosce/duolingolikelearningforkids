@@ -1,16 +1,16 @@
+import type { LessonProgress, Profile } from "@/domain/progress";
 import type { Lang } from "@/domain/language";
 
-export interface LearnerProfile {
-  uiLang: Lang;
-}
-
 /**
- * Storage port. IndexedDB is one adapter; tests use an in-memory one.
- * Nothing in domain or application imports a concrete database.
+ * Storage port. IndexedDB is one adapter; tests and private-mode fallback use memory.
+ * Domain and application code never import a concrete database.
  */
 export interface ProgressRepository {
-  getCompletedLessonIds(): Promise<string[]>;
-  getProfile(): Promise<LearnerProfile>;
+  getProfile(): Promise<Profile>;
+  saveProfile(profile: Profile): Promise<void>;
+  getLessonProgress(): Promise<LessonProgress[]>;
+  saveLessonProgress(progress: LessonProgress): Promise<void>;
+  reset(): Promise<void>;
 }
 
 export interface SpeechSynthPort {
@@ -29,4 +29,6 @@ export interface AppServices {
   progress: ProgressRepository;
   speech: SpeechSynthPort;
   recognition: SpeechRecognitionPort;
+  /** False when IndexedDB could not be opened. Progress lasts for this visit only. */
+  persistent: boolean;
 }
