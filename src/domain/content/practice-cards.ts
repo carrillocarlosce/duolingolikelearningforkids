@@ -13,7 +13,10 @@ export function practiceCards(lessonId: string): PracticeCard[] {
   const lesson = lessonCatalog.find((item) => item.id === lessonId);
   if (!lesson) return [];
 
-  const vocabIds = lesson.kind === "review" ? vocabulary.map((item) => item.id) : lesson.vocabIds;
+  const vocabIds =
+    lesson.kind === "review" && lesson.vocabIds.length === 0
+      ? vocabulary.map((item) => item.id)
+      : lesson.vocabIds;
   const words = vocabIds.map((id) => {
     const item = getVocab(id);
     return { id: item.id, emoji: item.emoji, en: item.en, es: item.es };

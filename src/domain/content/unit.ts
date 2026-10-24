@@ -2,6 +2,9 @@ import type { LocalizedText } from "@/domain/language";
 
 export type LessonKind = "vocab" | "sentences" | "writing" | "review";
 
+/** One focused step. When it is missing, the lesson keeps the mixed round for its kind. */
+export type LessonSkill = "recognize" | "listen" | "spell" | "write" | "sentence" | "checkpoint";
+
 export interface VocabItem {
   id: string;
   en: string;
@@ -41,6 +44,7 @@ export interface LessonSummary {
   kind: LessonKind;
   vocabIds: readonly string[];
   sentenceIds: readonly string[];
+  skill?: LessonSkill;
 }
 
 /** One school unit. Lesson ids are the progress keys stored on the tablet. */
@@ -53,6 +57,7 @@ export interface Unit {
 }
 
 const lessonKinds: readonly LessonKind[] = ["vocab", "sentences", "writing", "review"];
+const lessonSkills: readonly LessonSkill[] = ["recognize", "listen", "spell", "write", "sentence", "checkpoint"];
 const mascots = ["like", "want", "shop"] as const;
 
 function fail(path: string, message: string): never {
@@ -221,7 +226,7 @@ function readLesson(
   for (const sentenceId of lessonSentenceIds) {
     if (!sentenceIds.has(sentenceId)) fail(`${path}.sentenceIds`, `unknown sentence "${sentenceId}"`);
   }
-  return {
+  const lesson: LessonSummary = {
     id: readId(value.id, `${path}.id`),
     emoji: readText(value.emoji, `${path}.emoji`),
     title: readLocalized(value.title, `${path}.title`),
@@ -230,4 +235,11 @@ function readLesson(
     vocabIds,
     sentenceIds: lessonSentenceIds,
   };
+  if (value.skill !== undefined) {
+    if (typeof value.skill !== "string" || !lessonSkills.includes(value.skill as LessonSkill)) {
+      fail(`${path}.skill`, 'expected "recognize", "listen", "spell", "write", "sentence", or "checkpoint"');
+    }
+    lesson.skill = value.skill as LessonSkill;
+  }
+  return lesson;
 }

@@ -146,7 +146,8 @@ describe("buildLessonExercises", () => {
             expect(exercise.choiceIds).toContain(exercise.itemId);
           }
         }
-        expect(exercises.some((exercise) => exercise.type === "listen")).toBe(true);
+        const expectsListen = !lesson.skill || lesson.skill === "listen" || lesson.skill === "checkpoint";
+        expect(exercises.some((exercise) => exercise.type === "listen")).toBe(expectsListen);
       }
     }
   });
@@ -242,5 +243,75 @@ describe("buildLessonExercises", () => {
     if (heard?.type !== "listen") throw new Error("missing sentence listen");
     expect(heard.audioText).toBe("I like apples");
     expect(heard.clozeText).toBe("I like ___");
+  });
+
+  it("keeps each skill lesson on that one step", () => {
+    const heard = buildLessonExercises("sweet-listen", "en", mulberry32(3));
+    expect(heard[0]?.type).toBe("say");
+    expect(heard.filter((exercise) => exercise.type === "listen")).toHaveLength(3);
+    expect(heard.every((exercise) => exercise.type === "say" || exercise.type === "listen")).toBe(true);
+
+    const spelled = buildLessonExercises("sweet-spell", "es", mulberry32(3));
+    expect(spelled.filter((exercise) => exercise.type === "spell").map((exercise) =>
+      exercise.type === "spell" ? exercise.word : "",
+    )).toEqual(["pastel", "helado", "galletas"]);
+    expect(spelled.some((exercise) => exercise.type === "trace" || exercise.type === "type" || exercise.type === "listen")).toBe(
+      false,
+    );
+
+    const traced = buildLessonExercises("sweet-write", "en", mulberry32(3));
+    expect(traced.some((exercise) => exercise.type === "trace")).toBe(true);
+    expect(traced.some((exercise) => exercise.type === "type")).toBe(true);
+    expect(traced.some((exercise) => exercise.type === "spell" || exercise.type === "listen")).toBe(false);
+    const typed = traced.find((exercise) => exercise.type === "type");
+    if (typed?.type !== "type") throw new Error("missing type exercise");
+    expect(typed.answerLang).toBe("en");
+
+    const spelledWrite = buildLessonExercises("sweet-write", "en", mulberry32(3), { letterTracing: false });
+    expect(spelledWrite.some((exercise) => exercise.type === "spell")).toBe(true);
+    expect(spelledWrite.some((exercise) => exercise.type === "trace")).toBe(false);
+
+    const liked = buildLessonExercises("pattern-like", "en", mulberry32(4));
+    expect(liked[0]?.type).toBe("say");
+    if (liked[0]?.type !== "say") throw new Error("pattern lesson should open by saying the sentence");
+    expect(liked[0].promptText).toBe("I don't like cake");
+    expect(liked[0].sourceText).toBe("No me gusta el pastel");
+    const built = liked.find((exercise) => exercise.type === "build");
+    if (built?.type !== "build") throw new Error("missing pattern tiles");
+    expect(built.answerTokens).toEqual(["I", "don't", "like", "cake"]);
+    expect(built.scene).toEqual({ mascot: "like", emojis: ["🍰"] });
+    expect(liked.some((exercise) => exercise.type === "listen" || exercise.type === "picture-word")).toBe(false);
+
+    const priced = buildLessonExercises("pattern-price", "es", mulberry32(4));
+    const price = priced.find((exercise) => exercise.type === "build" && exercise.sentenceId === "price-apple");
+    if (price?.type !== "build") throw new Error("missing price tiles");
+    expect(price.answerTokens).toEqual(["¿Cuánto", "cuesta", "la", "manzana?"]);
+    expect(price.scene.mascot).toBe("shop");
+
+    const please = buildLessonExercises("pattern-please", "en-es", mulberry32(4));
+    const asked = please.find((exercise) => exercise.type === "build" && exercise.sentenceId === "have-milk");
+    if (asked?.type !== "build") throw new Error("missing please tiles");
+    expect(asked.answerLang).toBe("es");
+    expect(asked.answerTokens).toEqual(["¿Me", "da", "leche,", "por", "favor?"]);
+
+    const offered = buildLessonExercises("pattern-want", "en", mulberry32(4));
+    const want = offered.find((exercise) => exercise.type === "say");
+    if (want?.type !== "say") throw new Error("missing want sentence");
+    expect(want.promptText).toBe("Do you want pizza?");
+    expect(want.sourceText).toBe("¿Quieres pizza?");
+
+    const picnic = buildLessonExercises("mix-picnic", "en", mulberry32(2));
+    expect(picnic.filter((exercise) => exercise.type === "picture-word")).toHaveLength(5);
+    expect(picnic.some((exercise) => exercise.type === "word-picture")).toBe(true);
+    expect(picnic.some((exercise) => exercise.type === "spell" || exercise.type === "listen" || exercise.type === "trace")).toBe(
+      false,
+    );
+
+    const challenge = buildLessonExercises("market-challenge", "en-es", mulberry32(7));
+    expect(challenge[0]?.type).toBe("say");
+    expect(challenge.some((exercise) => exercise.type === "picture-word")).toBe(true);
+    expect(challenge.some((exercise) => exercise.type === "listen")).toBe(true);
+    expect(challenge.some((exercise) => exercise.type === "build")).toBe(true);
+    expect(challenge.some((exercise) => exercise.type === "spell" || exercise.type === "trace")).toBe(false);
   });
 });

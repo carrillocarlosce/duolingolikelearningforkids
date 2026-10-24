@@ -6,7 +6,8 @@ export type { LessonKind, LessonSummary };
 /**
  * Unit 7 path from the school bulletin "Let's go to the market!"
  * The first lesson is open. Each later lesson opens when the one before it is finished.
- * Lesson ids are unchanged so progress already stored on a tablet still matches.
+ * Ids that already shipped are unchanged, so IndexedDB progress still matches.
+ * Listen, spell, write, a sentence pattern, and a checkpoint sit between those ids.
  */
 export const lessonCatalog: readonly LessonSummary[] = requireUnit(MAP_UNIT_ID).lessons;
 

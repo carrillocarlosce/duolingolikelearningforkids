@@ -23,8 +23,17 @@ describe("unit files", () => {
     expect(units.map((unit) => unit.id)).toEqual(["unit-7"]);
     const unit = requireUnit(MAP_UNIT_ID);
     expect(unit.title).toEqual({ en: "Unit 7", es: "Unidad 7" });
-    expect(unit.lessons.map((lesson) => lesson.id)).toEqual(savedLessonIds);
-    expect(lessonCatalog.map((lesson) => lesson.id)).toEqual(savedLessonIds);
+    const ids = unit.lessons.map((lesson) => lesson.id);
+    expect(ids[0]).toBe("sweet-treats");
+    expect(ids.at(-1)).toBe("market-challenge");
+    let cursor = -1;
+    for (const id of savedLessonIds) {
+      const index = ids.indexOf(id);
+      expect(index).toBeGreaterThan(cursor);
+      cursor = index;
+    }
+    expect(lessonCatalog.map((lesson) => lesson.id)).toEqual(ids);
+    expect(unit.lessons.find((lesson) => lesson.id === "sweet-listen")?.skill).toBe("listen");
     expect(unit.vocabulary).toHaveLength(16);
     expect(unit.sentences.length).toBeGreaterThan(0);
   });
@@ -33,7 +42,7 @@ describe("unit files", () => {
     const file = path.join(process.cwd(), "src/domain/content/units/unit-7.json");
     const parsed = parseUnit(JSON.parse(readFileSync(file, "utf8")));
     expect(parsed.id).toBe("unit-7");
-    expect(parsed.lessons.map((lesson) => lesson.id)).toEqual(savedLessonIds);
+    expect(parsed.lessons.map((lesson) => lesson.id)).toEqual(lessonCatalog.map((lesson) => lesson.id));
   });
 
   it("names the broken field when a unit file is invalid", () => {
@@ -86,5 +95,12 @@ describe("unit files", () => {
         lessons: [{ ...unknownWord.lessons[0], vocabIds: ["bread"], kind: "quiz" }],
       }),
     ).toThrow(/unit\.lessons\[0\]\.kind/);
+
+    expect(() =>
+      parseUnit({
+        ...unknownWord,
+        lessons: [{ ...unknownWord.lessons[0], vocabIds: ["bread"], skill: "sing" }],
+      }),
+    ).toThrow(/unit\.lessons\[0\]\.skill/);
   });
 });
