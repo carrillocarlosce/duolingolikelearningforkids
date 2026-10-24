@@ -17,6 +17,10 @@ export interface SpeechSynthPort {
   speak(text: string, lang: Lang, rate: number): void;
   stop(): void;
   hasVoice(lang: Lang): boolean;
+  /** 0–1. Applied on the next spoken word. */
+  setVolume(volume: number): void;
+  /** Multiplier on the rate passed to speak. 1 leaves the lesson rates unchanged. */
+  setSpeed(speed: number): void;
 }
 
 export interface SpeechRecognitionPort {
@@ -42,7 +46,11 @@ export interface SoundEffectsPort {
   /** Resume audio inside a user gesture. Required on Android before any sound. */
   unlock(): void;
   play(effect: SoundEffect): void;
+  /** Play even when effects are muted, so a parent can hear the slider. */
+  preview(effect: SoundEffect): void;
   setEnabled(enabled: boolean): void;
+  /** 0–1. Updates sounds that are already playing. */
+  setVolume(volume: number): void;
 }
 
 export interface AppServices {

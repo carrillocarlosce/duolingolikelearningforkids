@@ -9,6 +9,10 @@ export class UnavailableSpeechSynth implements SpeechSynthPort {
   hasVoice(): boolean {
     return false;
   }
+
+  setVolume(): void {}
+
+  setSpeed(): void {}
 }
 
 export class UnavailableSpeechRecognition implements SpeechRecognitionPort {

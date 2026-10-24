@@ -14,7 +14,7 @@ type LessonMapProps = {
   soundOn: boolean;
   onDirection: (direction: Direction) => void;
   onSelect: (id: string) => void;
-  onToggleSound: () => void;
+  onOpenSettings: () => void;
   onPress: () => void;
 };
 
@@ -25,7 +25,7 @@ export function LessonMap({
   soundOn,
   onDirection,
   onSelect,
-  onToggleSound,
+  onOpenSettings,
   onPress,
 }: LessonMapProps) {
   return (
@@ -42,12 +42,22 @@ export function LessonMap({
           </div>
           <button
             type="button"
-            aria-pressed={soundOn}
-            aria-label={soundOn ? t.soundOn : t.soundOff}
-            onClick={onToggleSound}
-            className="grid size-14 shrink-0 place-items-center rounded-2xl bg-cream text-2xl"
+            onClick={() => {
+              onPress();
+              onOpenSettings();
+            }}
+            aria-label={soundOn ? t.settings : `${t.settings}. ${t.soundOff}`}
+            className="relative grid size-14 shrink-0 place-items-center rounded-2xl bg-cream text-ink"
           >
-            <span aria-hidden="true">{soundOn ? "🔊" : "🔇"}</span>
+            <GearIcon />
+            {soundOn ? null : (
+              <span
+                className="absolute -right-1 -bottom-1 grid size-6 place-items-center rounded-full bg-[#ff4b4b] text-xs text-white"
+                aria-hidden="true"
+              >
+                ×
+              </span>
+            )}
           </button>
         </div>
         <p className="mt-4 rounded-2xl bg-cream px-4 py-3 text-lg leading-snug text-ink">
@@ -149,5 +159,16 @@ export function LessonMap({
         </ol>
       </section>
     </div>
+  );
+}
+
+function GearIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-8" aria-hidden="true">
+      <path
+        fill="currentColor"
+        d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.2 7.2 0 0 0-1.63-.94l-.36-2.54a.5.5 0 0 0-.5-.42h-3.84a.5.5 0 0 0-.5.42l-.36 2.54c-.58.22-1.12.53-1.63.94l-2.39-.96a.5.5 0 0 0-.6.22L2.71 8.84a.5.5 0 0 0 .12.64l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32c.13.22.39.31.6.22l2.39-.96c.5.41 1.05.72 1.63.94l.36 2.54c.05.24.26.42.5.42h3.84c.24 0 .45-.18.5-.42l.36-2.54c.58-.22 1.12-.53 1.63-.94l2.39.96c.22.09.47 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58zM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7z"
+      />
+    </svg>
   );
 }
