@@ -174,6 +174,16 @@ function buildSentence(
   };
 }
 
+function traceWord(item: VocabItem, lang: Lang): Exercise {
+  return {
+    id: "",
+    type: "trace",
+    word: item[lang],
+    lang,
+    emoji: item.emoji,
+  };
+}
+
 function listenWord(
   item: VocabItem,
   prompt: Lang,
@@ -205,7 +215,7 @@ function matchPairs(items: readonly VocabItem[], direction: Direction, rng: () =
   return { id: "", type: "match", left, right };
 }
 
-/** Practice round for one lesson. Tracing and speaking aloud are added later. */
+/** Practice round for one lesson. Speaking aloud is added later. */
 export function buildLessonExercises(
   lessonId: string,
   direction: Direction,
@@ -226,6 +236,7 @@ export function buildLessonExercises(
     lines.slice(0, 2).forEach((line) => steps.push(typeSentence(line, prompt, answer, translating)));
     if (words.length >= 2) steps.push(matchPairs(words, direction, rng));
   } else if (lesson.kind === "writing") {
+    words.slice(0, 3).forEach((word) => steps.push(traceWord(word, answer)));
     words.slice(0, 3).forEach((word) => steps.push(typeWord(word, prompt, answer, translating)));
     if (lines[0]) steps.push(buildSentence(lines[0], prompt, answer, translating, pool, rng));
     if (lines[1] ?? lines[0]) steps.push(typeSentence((lines[1] ?? lines[0]) as Sentence, prompt, answer, translating));

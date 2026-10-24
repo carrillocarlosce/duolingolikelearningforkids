@@ -15,6 +15,7 @@ import {
   type SessionState,
 } from "@/domain/session";
 import type { Copy } from "@/presentation/i18n";
+import { TraceWord } from "@/presentation/exercises/TraceWord";
 import {
   BuildSentence,
   ListenPick,
@@ -140,6 +141,7 @@ export function LessonPlay({ lesson, direction, t, speech, onExit, onFinished }:
         ? "bg-sun text-ink"
         : "bg-[#ff4b4b] text-white";
   const progress = exercises.length === 0 ? 0 : ((session.index + (locked ? 1 : 0)) / exercises.length) * 100;
+  const selfCheck = exercise?.type === "match" || exercise?.type === "trace";
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-xl flex-col px-4 pt-4 pb-36">
@@ -172,8 +174,19 @@ export function LessonPlay({ lesson, direction, t, speech, onExit, onFinished }:
             onTokens={setTokens}
             onText={setText}
             onSolved={() => {
-              if (session.phase === "question") {
-                setSession(submitAnswer(session, exercise, { type: "match", matched: exercise.type === "match" ? exercise.left.length : 1, total: exercise.type === "match" ? exercise.left.length : 1 }));
+              if (session.phase === "question" && exercise.type === "match") {
+                setSession(
+                  submitAnswer(session, exercise, {
+                    type: "match",
+                    matched: exercise.left.length,
+                    total: exercise.left.length,
+                  }),
+                );
+              }
+            }}
+            onTraced={() => {
+              if (session.phase === "question" && exercise.type === "trace") {
+                setSession(submitAnswer(session, exercise, { type: "trace", coverage: 1 }));
               }
             }}
             onEnter={check}
@@ -203,14 +216,16 @@ export function LessonPlay({ lesson, direction, t, speech, onExit, onFinished }:
       ) : (
         <div className="fixed inset-x-0 bottom-0 z-20 px-4 pb-4">
           <div className="mx-auto w-full max-w-xl">
+            {selfCheck ? null : (
             <button
               type="button"
-              disabled={!draft || exercise?.type === "match"}
+              disabled={!draft}
               onClick={check}
               className="btn-3d btn-leaf w-full bg-leaf py-4 text-xl text-white disabled:bg-slate-300 disabled:opacity-70"
             >
               {t.check}
             </button>
+            )}
           </div>
         </div>
       )}
@@ -241,6 +256,7 @@ function ExerciseBody({
   onTokens,
   onText,
   onSolved,
+  onTraced,
   onEnter,
   speech,
 }: {
@@ -252,6 +268,7 @@ function ExerciseBody({
   onTokens: (tokens: string[] | null) => void;
   onText: (text: string) => void;
   onSolved: () => void;
+  onTraced: () => void;
   onEnter: () => void;
   speech: SpeechSynthPort;
 }) {
@@ -282,6 +299,8 @@ function ExerciseBody({
           onSelect={onSelect}
         />
       );
+    case "trace":
+      return <TraceWord exercise={exercise} t={t} disabled={disabled} onSolved={onTraced} />;
     default:
       return null;
   }

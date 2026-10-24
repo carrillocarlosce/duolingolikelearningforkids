@@ -46,6 +46,28 @@ describe("buildLessonExercises", () => {
     expect(matched.left.every((side) => side.text.length > 0)).toBe(true);
   });
 
+  it("traces the writing-lesson words in the answer language", () => {
+    const spanish = buildLessonExercises("write-it", "es", mulberry32(5));
+    const traced = spanish.filter((exercise) => exercise.type === "trace");
+    expect(traced.map((exercise) => (exercise.type === "trace" ? exercise.word : ""))).toEqual([
+      "leche",
+      "sándwich",
+      "ensalada",
+    ]);
+
+    const english = buildLessonExercises("write-it", "en", mulberry32(5));
+    const first = english.find((exercise) => exercise.type === "trace");
+    if (first?.type !== "trace") throw new Error("missing trace exercise");
+    expect(first.word).toBe("milk");
+    expect(first.lang).toBe("en");
+
+    for (const lesson of lessonCatalog) {
+      if (lesson.kind === "writing") continue;
+      const round = buildLessonExercises(lesson.id, "en", mulberry32(6));
+      expect(round.some((exercise) => exercise.type === "trace")).toBe(false);
+    }
+  });
+
   it("builds a non-empty round for every lesson and direction", () => {
     for (const lesson of lessonCatalog) {
       for (const direction of ["en-es", "es-en", "en", "es"] as const) {

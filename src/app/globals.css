@@ -87,6 +87,11 @@ a {
   animation: shake 0.35s linear;
 }
 
+.trace-pad {
+  touch-action: none;
+  aspect-ratio: 1;
+}
+
 :focus-visible {
   outline: 3px solid #1cb0f6;
   outline-offset: 3px;
