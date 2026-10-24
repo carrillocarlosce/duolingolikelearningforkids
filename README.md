@@ -86,6 +86,21 @@ Progress, XP, hearts, the streak, UI language, and finished lessons stay in a da
 
 `tests/architecture.test.ts` fails the build if those import rules are broken.
 
+## Add a unit or a lesson
+
+Each school unit is one JSON file in [`src/domain/content/units/`](src/domain/content/units/). The file holds the vocabulary, the sentences, and the lesson path. [`src/domain/content/registry.ts`](src/domain/content/registry.ts) loads those files and checks them. A bad id, a sentence whose tiles do not match the words, or a lesson that points at a missing word fails `npm test` with the field name.
+
+To add a unit:
+
+1. Copy `unit-7.json` to a new file, such as `unit-8.json`.
+2. Set a new `id` (lowercase, hyphens) and the English and Spanish titles.
+3. Replace the words, sentences, and lessons. A lesson `id` is the progress key stored on the tablet. Do not rename an id that tablets already saved.
+4. Import the file in `registry.ts` and add it to `unitFiles`.
+
+To add a lesson inside a unit, append an object to `lessons`. Give it a new `id`, an emoji, titles, a `kind` (`vocab`, `sentences`, `writing`, or `review`), and the `vocabIds` and `sentenceIds` it uses. The map opens lessons in that order. The first is open, and each later lesson opens when the one before it is finished.
+
+The map still teaches `unit-7`. Its lesson ids are the same as before this file, so progress already stored in IndexedDB still lines up.
+
 ## Scripts
 
 | Script | What it does |
