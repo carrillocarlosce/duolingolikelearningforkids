@@ -7,6 +7,18 @@ export interface MatchSide {
   emoji?: string;
 }
 
+/** One row on the exam menu card. Done lines show the English. The current line stays blank. */
+export interface MenuCardRow {
+  emoji: string;
+  text: string;
+  state: "done" | "now" | "later";
+}
+
+export interface MenuCard {
+  title: string;
+  rows: readonly MenuCardRow[];
+}
+
 export type Exercise =
   | {
       id: string;
@@ -61,6 +73,8 @@ export type Exercise =
       answerTokens: string[];
       answerText: string;
       scene: SentenceScene;
+      /** Exam practice does not spend a heart. */
+      exam?: boolean;
     }
   | {
       id: string;
@@ -77,6 +91,13 @@ export type Exercise =
       sourceLang?: Lang;
       sourceText?: string;
       scene?: SentenceScene;
+      /** Capitals and spaces can slip. The letters have to match. */
+      strict?: boolean;
+      /** A miss stays on this step until the line is right. */
+      retryUntilCorrect?: boolean;
+      /** Exam practice does not spend a heart. */
+      exam?: boolean;
+      menuCard?: MenuCard;
     }
   | {
       id: string;
@@ -114,6 +135,10 @@ export type Exercise =
       clozeText: string;
       speakText: string;
       scene: SentenceScene;
+      /** Shown instead of a vocabulary word. Used for "and" and "A". */
+      choiceLabels?: Readonly<Record<string, string>>;
+      /** Exam practice does not spend a heart. */
+      exam?: boolean;
     }
   | {
       id: string;

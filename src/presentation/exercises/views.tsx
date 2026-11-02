@@ -4,10 +4,48 @@ import { useEffect, useRef, useState } from "react";
 import type { SpeechSynthPort } from "@/application/ports";
 import { getSentence } from "@/domain/content/sentences";
 import { getVocab } from "@/domain/content/vocabulary";
-import type { Exercise } from "@/domain/exercises";
+import type { Exercise, MenuCard } from "@/domain/exercises";
+import type { Lang } from "@/domain/language";
 import { SPEECH_RATE_NORMAL, SPEECH_RATE_SLOW } from "@/domain/speech";
 import { SentenceSceneView } from "@/presentation/components/SentenceSceneView";
 import type { Copy } from "@/presentation/i18n";
+
+function useExamSpeech(
+  exam: boolean | undefined,
+  text: string,
+  lang: Lang,
+  disabled: boolean,
+  speech: SpeechSynthPort,
+) {
+  useEffect(() => {
+    if (!exam || disabled || !text) return;
+    speech.speak(text, lang, SPEECH_RATE_NORMAL);
+  }, [disabled, exam, lang, speech, text]);
+}
+
+function MenuCardView({ card }: { card: MenuCard }) {
+  return (
+    <div className="rounded-[1.75rem] border-4 border-sun bg-white px-4 py-4 shadow-[0_4px_0_#e6a800]">
+      <p className="text-center text-lg font-bold text-leaf-dark">{card.title}</p>
+      <ol className="mt-3 grid gap-2">
+        {card.rows.map((row, index) => (
+          <li key={`${row.emoji}-${index}`} className="flex items-center gap-3 text-xl font-bold">
+            <span aria-hidden="true" className="text-3xl" draggable={false}>
+              {row.emoji}
+            </span>
+            {row.state === "done" ? (
+              <span lang="en">{row.text}</span>
+            ) : row.state === "now" ? (
+              <span className="h-8 flex-1 border-b-4 border-dashed border-sky" />
+            ) : (
+              <span className="text-ink/30">…</span>
+            )}
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
 
 function choiceClass(selected: boolean): string {
   return [
@@ -222,6 +260,7 @@ export function BuildSentence({
   const instruction = exercise.answerLang === "en" ? t.buildInEnglish : t.buildInSpanish;
   const wordCount = exercise.answerTokens.length;
   const slotCount = Math.max(wordCount, used.length);
+  useExamSpeech(exercise.exam, exercise.speakText, exercise.answerLang, disabled, speech);
 
   function update(next: number[]) {
     onEffect("tap");
@@ -416,9 +455,11 @@ export function TypeAnswer({
   const sentence = Boolean(exercise.sentenceId) || (exercise.accepted[0]?.includes(" ") ?? false);
   const instruction = exercise.answerLang === "en" ? t.typeInEnglish : t.typeInSpanish;
   const showSource = Boolean(exercise.sourceText && exercise.sourceText !== exercise.promptText);
+  useExamSpeech(exercise.exam, exercise.speakText, exercise.answerLang, disabled, speech);
   return (
     <div className="flex flex-col gap-4">
       <h2 className="text-center text-2xl font-bold">{sentence ? instruction : t.typeWord}</h2>
+      {exercise.menuCard ? <MenuCardView card={exercise.menuCard} /> : null}
       {exercise.scene ? <SentenceSceneView scene={exercise.scene} /> : null}
       {exercise.emoji ? (
         <p className="text-center text-6xl" draggable={false}>
@@ -446,6 +487,18 @@ export function TypeAnswer({
               <span aria-hidden="true">🔊</span>
             </button>
           ) : null}
+        </div>
+      ) : exercise.hidePromptText && exercise.speakText ? (
+        <div className="flex justify-center">
+          <button
+            type="button"
+            lang={exercise.answerLang}
+            aria-label={t.hearSentence}
+            onClick={() => speech.speak(exercise.speakText, exercise.answerLang, SPEECH_RATE_NORMAL)}
+            className="grid size-16 place-items-center rounded-full bg-sky text-3xl text-white shadow-[0_4px_0_#1899d6]"
+          >
+            <span aria-hidden="true">🔊</span>
+          </button>
         </div>
       ) : null}
       <input
@@ -487,6 +540,7 @@ export function FillBlank({
   disabled: boolean;
   onSelect: (id: string) => void;
 }) {
+  useExamSpeech(exercise.exam, exercise.speakText, exercise.answerLang, disabled, speech);
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-3">
@@ -515,7 +569,7 @@ export function FillBlank({
             onClick={() => onSelect(id)}
             className={choiceClass(selected === id)}
           >
-            {getVocab(id)[exercise.answerLang]}
+            {exercise.choiceLabels?.[id] ?? getVocab(id)[exercise.answerLang]}
           </button>
         ))}
       </div>

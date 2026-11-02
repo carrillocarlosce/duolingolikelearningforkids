@@ -1,3 +1,4 @@
+import { examLine, examLines } from "@/domain/content/exam";
 import { getSentence, scenePreview } from "@/domain/content/sentences";
 import { getVocab, vocabulary } from "@/domain/content/vocabulary";
 import { lessonCatalog } from "@/domain/lesson-path";
@@ -12,6 +13,13 @@ export interface PracticeCard {
 export function practiceCards(lessonId: string): PracticeCard[] {
   const lesson = lessonCatalog.find((item) => item.id === lessonId);
   if (!lesson) return [];
+  if (lesson.skill === "exam" && lesson.examLineId) {
+    const line = examLine(lesson.examLineId);
+    return [{ id: line.id, emoji: line.emoji, en: line.en, es: line.es }];
+  }
+  if (lesson.skill === "exam-menu") {
+    return examLines().map((line) => ({ id: line.id, emoji: line.emoji, en: line.en, es: line.es }));
+  }
 
   const vocabIds =
     lesson.kind === "review" && lesson.vocabIds.length === 0

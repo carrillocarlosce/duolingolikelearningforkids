@@ -178,8 +178,18 @@ export function LessonMap({
         <ol className="relative flex flex-col gap-3">
           {nodes.map((node, index) => {
             const offset = offsets[index % offsets.length] ?? 0;
+            const exam = node.skill === "exam" || node.skill === "exam-menu";
+            const previous = nodes[index - 1];
+            const previousExam = previous?.skill === "exam" || previous?.skill === "exam-menu";
+            const startsExam = exam && !previousExam;
             return (
-              <li key={node.id} className="flex justify-center">
+              <li key={node.id} className="flex flex-col items-center">
+                {startsExam ? (
+                  <div className="mb-4 w-full max-w-sm rounded-[1.75rem] bg-white px-4 py-4 text-center shadow-[0_4px_0_#e4e4e4]">
+                    <h2 className="text-sm font-bold uppercase tracking-wide text-sky">{t.examSection}</h2>
+                    <p className="mt-1 text-lg font-bold leading-snug text-ink">{t.examSectionNote}</p>
+                  </div>
+                ) : null}
                 <div
                   className="flex w-40 flex-col items-center"
                   style={{ transform: `translateX(${offset}px)` }}
@@ -234,8 +244,11 @@ export function LessonMap({
                     ) : null}
                   </button>
                   <p className="mt-2 text-center text-base font-bold leading-tight text-ink">
-                    {node.title.es}
+                    {exam ? node.title.en : node.title.es}
                   </p>
+                  {exam ? (
+                    <p className="text-center text-sm font-semibold leading-tight text-leaf-dark">{node.title.es}</p>
+                  ) : null}
                 </div>
               </li>
             );

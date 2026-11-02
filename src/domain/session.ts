@@ -1,4 +1,4 @@
-import { gradeText, normalizeAnswer } from "@/domain/answers";
+import { gradeExact, gradeText, normalizeAnswer } from "@/domain/answers";
 import type { Answer, Exercise, Grade, GradeStatus } from "@/domain/exercises";
 import { starsForMistakes, xpForStatus, XP_LESSON_BONUS, XP_PERFECT_BONUS } from "@/domain/scoring";
 
@@ -137,6 +137,7 @@ function isOrderedSubset(given: readonly string[], expected: readonly string[]):
 }
 
 function gradeTyped(exercise: Extract<Exercise, { type: "type" }>, text: string): Grade {
+  if (exercise.strict) return gradeExact(text, exercise.accepted);
   const graded = gradeText(text, exercise.accepted);
   const canonical = graded.canonical ?? exercise.accepted[0] ?? "";
   if (exercise.sentenceId && graded.status === "incorrect" && canonical) {
@@ -159,6 +160,7 @@ function normalizeToken(token: string): string {
 
 function costsHeart(exercise: Exercise, status: GradeStatus): boolean {
   if (status !== "incorrect") return false;
+  if ("exam" in exercise && exercise.exam === true) return false;
   return exercise.type !== "match" && exercise.type !== "trace";
 }
 
@@ -181,9 +183,15 @@ export function submitAnswer(state: SessionState, exercise: Exercise, answer: An
   };
 }
 
-export function continueSession(state: SessionState, exerciseCount: number): SessionState {
+export function continueSession(state: SessionState, exerciseCount: number, stay = false): SessionState {
   if (state.phase !== "feedback") return state;
   if (state.outcome === "failed") return state;
+  const retry =
+    stay &&
+    state.lastGrade !== null &&
+    state.lastGrade.status !== "correct" &&
+    state.lastGrade.status !== "skipped";
+  if (retry) return { ...state, phase: "question", lastGrade: null };
   const next = state.index + 1;
   if (next >= exerciseCount) {
     return { ...state, phase: "done", outcome: "complete", lastGrade: null };

@@ -17,7 +17,14 @@ type LessonReaderProps = {
 
 export function LessonReader({ lesson, t, saving, actionLabel, cards, speech, onBack, onFinish }: LessonReaderProps) {
   const shown = cards ?? practiceCards(lesson.id);
-  const note = !lesson.unlocked ? t.lockedNote : lesson.completed ? t.doneNote : t.currentNote;
+  const examLesson = lesson.skill === "exam" || lesson.skill === "exam-menu";
+  const note = !lesson.unlocked
+    ? t.lockedNote
+    : lesson.completed
+      ? t.doneNote
+      : lesson.current || !examLesson
+        ? t.currentNote
+        : t.examOpenNote;
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-xl flex-col px-4 pt-5 pb-28">
