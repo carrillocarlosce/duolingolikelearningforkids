@@ -140,7 +140,8 @@ export function LessonPlay({
         onFinish={() => {
           if (!lesson.unlocked || exercises.length === 0) return;
           sound.play("button");
-          if (session.hearts <= 0) {
+          const examLesson = lesson.skill === "exam" || lesson.skill === "exam-menu";
+          if (session.hearts <= 0 && !examLesson) {
             setPhase("failed");
             return;
           }
@@ -180,7 +181,12 @@ export function LessonPlay({
   }
 
   function advance() {
-    const next = continueSession(session, exercises.length);
+    const stay =
+      exercise?.type === "type" &&
+      exercise.retryUntilCorrect === true &&
+      session.lastGrade?.status !== "correct" &&
+      session.lastGrade?.status !== "skipped";
+    const next = continueSession(session, exercises.length, stay);
     setSession(next);
     setDraft(null);
     if (next.outcome === "complete" && !saved) {
@@ -307,7 +313,14 @@ export function LessonPlay({
         </p>
       </div>
 
-        <div className="mt-5" key={exercise?.id ?? "empty"}>
+        <div
+          className="mt-5"
+          key={`${exercise?.id ?? "empty"}-${
+            session.phase === "feedback" && session.lastGrade?.status === "incorrect"
+              ? session.mistakes - 1
+              : session.mistakes
+          }`}
+        >
         {exercise ? (
           <ExerciseBody
             exercise={exercise}

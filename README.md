@@ -105,7 +105,11 @@ The map still teaches `unit-7`. Do not rename a lesson id that tablets already s
 
 ## Unit 7 lesson ladder
 
-Each food group still starts with its original lesson. That lesson is the recognize step, and its id is unchanged, so a finished lesson stored in IndexedDB stays finished. After it, the path adds a shorter step for the same words: listen and choose, then spell, then write, then a sentence. A checkpoint sits at the end of the group. Picnic, lunch, and basket lessons mix four or five words from different groups. The last lesson on the path is the market challenge. The restaurant bonus stays the button on the map.
+Each food group still starts with its original lesson. That lesson is the recognize step, and its id is unchanged, so a finished lesson stored in IndexedDB stays finished. After it, the path adds a shorter step for the same words: listen and choose, then spell, then write, then a sentence. A checkpoint sits at the end of the group. Picnic, lunch, and basket lessons mix four or five words from different groups. The market challenge ends that path. The restaurant bonus stays the button on the map.
+
+## Exam practice
+
+After the market challenge, the map adds an exam section. The lines live in `examLines` in `unit-7.json`. The app appends one writing lesson per line, then "Write my menu". Adding a line is one object in that list. The lessons are not copied into the `lessons` array. The child writes the English line, including "A" and "and". Spanish on the screen is the meaning ("Helado y torta"), not the answer. A miss shows the English line and asks for it again. It does not spend a heart. The first exam lesson is open even when earlier lessons are not finished, so the lines can be practiced before the rest of the path. Later exam lessons open when the exam lesson before them is finished. Each line is its own saved step, so leaving in the middle keeps the lines already finished. `fries` (papas fritas) is in the Unit 7 word list for the hamburger line. It is an everyday food, not a treat, so the healthy-menu rules stay the same.
 
 New lessons are inserted between the old ids. A child who already finished a later lesson still starts the new step that now comes next. Saved ids are not renamed.
 

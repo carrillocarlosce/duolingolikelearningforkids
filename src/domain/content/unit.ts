@@ -3,7 +3,15 @@ import type { LocalizedText } from "@/domain/language";
 export type LessonKind = "vocab" | "sentences" | "writing" | "review";
 
 /** One focused step. When it is missing, the lesson keeps the mixed round for its kind. */
-export type LessonSkill = "recognize" | "listen" | "spell" | "write" | "sentence" | "checkpoint";
+export type LessonSkill =
+  | "recognize"
+  | "listen"
+  | "spell"
+  | "write"
+  | "sentence"
+  | "checkpoint"
+  | "exam"
+  | "exam-menu";
 
 export interface VocabItem {
   id: string;
@@ -45,6 +53,19 @@ export interface LessonSummary {
   vocabIds: readonly string[];
   sentenceIds: readonly string[];
   skill?: LessonSkill;
+  /** Menu line this exam lesson spells. Set by the unit file, not by hand on the path. */
+  examLineId?: string;
+}
+
+/** One English menu line the child must spell. Spanish is the meaning, not the answer. */
+export interface ExamLine {
+  id: string;
+  en: string;
+  es: string;
+  enTokens: readonly string[];
+  esTokens: readonly string[];
+  imageIds: readonly string[];
+  emoji: string;
 }
 
 /** One school unit. Lesson ids are the progress keys stored on the tablet. */
@@ -53,11 +74,22 @@ export interface Unit {
   title: LocalizedText;
   vocabulary: readonly VocabItem[];
   sentences: readonly Sentence[];
+  /** Menu lines to spell. Empty means the map has no exam section. */
+  examLines: readonly ExamLine[];
   lessons: readonly LessonSummary[];
 }
 
 const lessonKinds: readonly LessonKind[] = ["vocab", "sentences", "writing", "review"];
-const lessonSkills: readonly LessonSkill[] = ["recognize", "listen", "spell", "write", "sentence", "checkpoint"];
+const lessonSkills: readonly LessonSkill[] = [
+  "recognize",
+  "listen",
+  "spell",
+  "write",
+  "sentence",
+  "checkpoint",
+  "exam",
+  "exam-menu",
+];
 const mascots = ["like", "want", "shop"] as const;
 
 function fail(path: string, message: string): never {
@@ -116,8 +148,15 @@ export function parseUnit(value: unknown): Unit {
   const wordIds = new Set(vocabulary.map((item) => item.id));
   const sentences = readSentences(value.sentences, wordIds, "unit.sentences");
   const sentenceIds = new Set(sentences.map((item) => item.id));
-  const lessons = readLessons(value.lessons, wordIds, sentenceIds, "unit.lessons");
-  return { id, title, vocabulary, sentences, lessons };
+  const examLines = readExamLines(value.examLines, wordIds, "unit.examLines");
+  const examLineIds = new Set(examLines.map((line) => line.id));
+  const written = readLessons(value.lessons, wordIds, sentenceIds, examLineIds, "unit.lessons");
+  const lessons = [...written, ...generatedExamLessons(examLines)];
+  uniqueIds(
+    lessons.map((lesson) => lesson.id),
+    "unit.lessons",
+  );
+  return { id, title, vocabulary, sentences, examLines, lessons };
 }
 
 function readVocabulary(value: unknown, path: string): VocabItem[] {
@@ -196,14 +235,78 @@ function readScene(value: unknown, sentencePath: string): SentenceScene {
   return scene;
 }
 
+function readExamLines(value: unknown, wordIds: ReadonlySet<string>, path: string): ExamLine[] {
+  if (value === undefined) return [];
+  if (!Array.isArray(value)) fail(path, "expected a list of menu lines");
+  const items = value.map((item, index) => readExamLine(item, wordIds, `${path}[${index}]`));
+  uniqueIds(
+    items.map((item) => item.id),
+    path,
+  );
+  return items;
+}
+
+function readExamLine(value: unknown, wordIds: ReadonlySet<string>, path: string): ExamLine {
+  if (!isRecord(value)) fail(path, "expected a menu line");
+  const en = readText(value.en, `${path}.en`);
+  const es = readText(value.es, `${path}.es`);
+  const enTokens = readStringList(value.enTokens, `${path}.enTokens`);
+  const esTokens = readStringList(value.esTokens, `${path}.esTokens`);
+  if (enTokens.join(" ") !== en) fail(`${path}.enTokens`, "must join with spaces into the English line");
+  if (esTokens.join(" ") !== es) fail(`${path}.esTokens`, "must join with spaces into the Spanish line");
+  const imageIds = readStringList(value.imageIds, `${path}.imageIds`);
+  if (imageIds.length === 0) fail(`${path}.imageIds`, "expected at least one word id");
+  for (const imageId of imageIds) {
+    if (!wordIds.has(imageId)) fail(`${path}.imageIds`, `unknown word "${imageId}"`);
+  }
+  return {
+    id: readId(value.id, `${path}.id`),
+    en,
+    es,
+    enTokens,
+    esTokens,
+    imageIds,
+    emoji: readText(value.emoji, `${path}.emoji`),
+  };
+}
+
+/** One writing lesson per menu line, then a card where every line is typed in order. */
+function generatedExamLessons(lines: readonly ExamLine[]): LessonSummary[] {
+  const lessons: LessonSummary[] = lines.map((line) => ({
+    id: `exam-${line.id}`,
+    emoji: line.emoji,
+    title: { en: line.en, es: line.es },
+    blurb: { en: "Spell this menu line.", es: "Escribe esta línea del menú." },
+    kind: "writing",
+    vocabIds: line.imageIds,
+    sentenceIds: [],
+    skill: "exam",
+    examLineId: line.id,
+  }));
+  if (lines.length === 0) return lessons;
+  const vocabIds = [...new Set(lines.flatMap((line) => [...line.imageIds]))];
+  lessons.push({
+    id: "exam-write-menu",
+    emoji: "📝",
+    title: { en: "Write my menu", es: "Escribe mi menú" },
+    blurb: { en: `Type all ${lines.length} lines.`, es: `Escribe las ${lines.length} líneas.` },
+    kind: "writing",
+    vocabIds,
+    sentenceIds: [],
+    skill: "exam-menu",
+  });
+  return lessons;
+}
+
 function readLessons(
   value: unknown,
   wordIds: ReadonlySet<string>,
   sentenceIds: ReadonlySet<string>,
+  examLineIds: ReadonlySet<string>,
   path: string,
 ): LessonSummary[] {
   if (!Array.isArray(value) || value.length === 0) fail(path, "expected at least one lesson");
-  const items = value.map((item, index) => readLesson(item, wordIds, sentenceIds, `${path}[${index}]`));
+  const items = value.map((item, index) => readLesson(item, wordIds, sentenceIds, examLineIds, `${path}[${index}]`));
   uniqueIds(items.map((item) => item.id), path);
   return items;
 }
@@ -212,6 +315,7 @@ function readLesson(
   value: unknown,
   wordIds: ReadonlySet<string>,
   sentenceIds: ReadonlySet<string>,
+  examLineIds: ReadonlySet<string>,
   path: string,
 ): LessonSummary {
   if (!isRecord(value)) fail(path, "expected a lesson");
@@ -237,9 +341,21 @@ function readLesson(
   };
   if (value.skill !== undefined) {
     if (typeof value.skill !== "string" || !lessonSkills.includes(value.skill as LessonSkill)) {
-      fail(`${path}.skill`, 'expected "recognize", "listen", "spell", "write", "sentence", or "checkpoint"');
+      fail(
+        `${path}.skill`,
+        'expected "recognize", "listen", "spell", "write", "sentence", "checkpoint", "exam", or "exam-menu"',
+      );
     }
     lesson.skill = value.skill as LessonSkill;
+  }
+  if (value.examLineId !== undefined) {
+    lesson.examLineId = readId(value.examLineId, `${path}.examLineId`);
+  }
+  if (lesson.skill === "exam") {
+    if (!lesson.examLineId) fail(`${path}.examLineId`, "expected an exam line id");
+    if (!examLineIds.has(lesson.examLineId)) {
+      fail(`${path}.examLineId`, `unknown exam line "${lesson.examLineId}"`);
+    }
   }
   return lesson;
 }

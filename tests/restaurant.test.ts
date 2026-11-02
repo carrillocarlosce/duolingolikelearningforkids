@@ -25,7 +25,7 @@ describe("restaurant menu", () => {
       vocabulary.filter((item) => foodRole(item.id) === role).map((item) => item.id);
     expect(ids("healthy")).toEqual(["apple", "milk", "grapes", "salad", "fruit", "orange", "chicken"]);
     expect(ids("treat")).toEqual(["cake", "ice-cream", "hamburger", "cookies", "hot-dog"]);
-    expect(ids("everyday")).toEqual(["juice", "pizza", "pasta", "sandwich"]);
+    expect(ids("everyday")).toEqual(["juice", "pizza", "pasta", "sandwich", "fries"]);
   });
 
   it("accepts two healthy foods and at most one treat", () => {

@@ -108,6 +108,9 @@ export const copy = {
     practiceEmptyTitle: "Pipo descansa",
     practiceEmpty: "Hoy no hay palabras pendientes. Vuelve mañana.",
     practiceSaved: "¡Listo! Pipo guardó lo que practicaste.",
+    examSection: "Práctica del examen",
+    examSectionNote: "Escribe estas líneas en inglés.",
+    examOpenNote: "Puedes practicar estas líneas cuando quieras.",
   },
   en: {
     unitLabel: "Unit 7",
@@ -216,6 +219,9 @@ export const copy = {
     practiceEmptyTitle: "Pipo is resting",
     practiceEmpty: "Nothing is waiting today. Come back tomorrow.",
     practiceSaved: "Done! Pipo saved what you practiced.",
+    examSection: "Exam practice",
+    examSectionNote: "Spell these lines in English.",
+    examOpenNote: "You can practice these lines whenever you want.",
   },
 } as const satisfies Record<Lang, Record<string, string>>;
 

@@ -19,7 +19,7 @@ describe("lesson path", () => {
   it("keeps the saved Unit 7 ids and adds the skill ladder around them", () => {
     const ids = lessonCatalog.map((lesson) => lesson.id);
     expect(ids[0]).toBe("sweet-treats");
-    expect(ids.at(-1)).toBe("market-challenge");
+    expect(ids.at(-1)).toBe("exam-write-menu");
     let cursor = -1;
     for (const id of savedIds) {
       const index = ids.indexOf(id);
@@ -66,15 +66,29 @@ describe("lesson path", () => {
       "write-it",
       "my-restaurant",
       "market-challenge",
+      "exam-ice-cream-and-cake",
+      "exam-a-fruit-salad",
+      "exam-sandwich-and-milk",
+      "exam-hamburger-and-fries",
+      "exam-write-menu",
     ]);
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it("opens only the first lesson when nothing is finished", () => {
+  it("opens the first lesson and the first exam line when nothing is finished", () => {
     const path = getLessonPath([]);
     expect(path[0]?.unlocked).toBe(true);
     expect(path[0]?.current).toBe(true);
-    expect(path.slice(1).every((lesson) => !lesson.unlocked && !lesson.current)).toBe(true);
+    expect(path[0]?.id).toBe("sweet-treats");
+    const firstExam = path.findIndex((lesson) => lesson.skill === "exam");
+    expect(path[firstExam]?.id).toBe("exam-ice-cream-and-cake");
+    expect(path[firstExam]?.unlocked).toBe(true);
+    expect(path[firstExam]?.current).toBe(false);
+    for (const [index, lesson] of path.entries()) {
+      if (index === 0 || index === firstExam) continue;
+      expect(lesson.unlocked).toBe(false);
+      expect(lesson.current).toBe(false);
+    }
   });
 
   it("unlocks the next lesson after the previous one is complete", () => {

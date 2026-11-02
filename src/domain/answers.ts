@@ -40,6 +40,21 @@ export function typoBudget(length: number): number {
 }
 
 /**
+ * Spelling check for a line that must be exact. Capitals, extra spaces, and
+ * accents are ignored. A missing letter, a missing word, or a typo is wrong.
+ */
+export function gradeExact(input: string, accepted: readonly string[]): Grade {
+  const canonical = accepted[0] ?? "";
+  if (!canonical) return { status: "incorrect" };
+  const normalizedInput = normalizeAnswer(input);
+  if (!normalizedInput) return { status: "incorrect", canonical };
+  for (const form of accepted) {
+    if (normalizeAnswer(form) === normalizedInput) return { status: "correct", canonical };
+  }
+  return { status: "incorrect", canonical };
+}
+
+/**
  * Case, accents, and small typos count. An exact alternate (torta, fideos, perro caliente)
  * is correct. A near miss is "almost": still right, and the UI shows the spelling.
  */

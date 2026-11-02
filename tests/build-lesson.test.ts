@@ -150,7 +150,10 @@ describe("buildLessonExercises", () => {
             expect(exercise.choiceIds).toContain(exercise.itemId);
           }
         }
-        const expectsListen = !lesson.skill || lesson.skill === "listen" || lesson.skill === "checkpoint";
+        const expectsListen =
+          lesson.skill !== "exam" &&
+          lesson.skill !== "exam-menu" &&
+          (!lesson.skill || lesson.skill === "listen" || lesson.skill === "checkpoint");
         expect(exercises.some((exercise) => exercise.type === "listen")).toBe(expectsListen);
       }
     }
@@ -160,7 +163,8 @@ describe("buildLessonExercises", () => {
     const seen = new Set<string>();
     for (const lesson of lessonCatalog) {
       for (const direction of ["en-es", "es-en", "en", "es"] as const) {
-        const expected = answerFor(direction);
+        const expected =
+          lesson.skill === "exam" || lesson.skill === "exam-menu" ? "en" : answerFor(direction);
         const exercises = [
           ...buildLessonExercises(lesson.id, direction, mulberry32(8)),
           ...buildLessonExercises(lesson.id, direction, mulberry32(8), { letterTracing: false }),
@@ -218,6 +222,7 @@ describe("buildLessonExercises", () => {
   it("gives every sentence exercise a translation and spoken target", () => {
     const themed = new Set(["like-apples", "like-milk", "want-pizza", "want-hamburger", "want-cookies"]);
     for (const lesson of lessonCatalog) {
+      if (lesson.skill === "exam" || lesson.skill === "exam-menu") continue;
       for (const direction of ["en-es", "es-en", "en", "es"] as const) {
         const answer = answerFor(direction);
         for (const exercise of buildLessonExercises(lesson.id, direction, mulberry32(9))) {

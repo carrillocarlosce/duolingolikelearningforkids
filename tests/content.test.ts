@@ -23,10 +23,13 @@ describe("Unit 7 content", () => {
       "chicken",
       "cookies",
       "hot dog",
+      "fries",
     ]);
     expect(vocabulary.find((item) => item.id === "pasta")?.es).toBe("fideos");
     expect(vocabulary.find((item) => item.id === "cake")?.es).toBe("pastel");
     expect(vocabulary.find((item) => item.id === "hot-dog")?.esAlternates).toContain("perro caliente");
+    expect(vocabulary.find((item) => item.id === "fries")?.es).toBe("papas fritas");
+    expect(vocabulary.find((item) => item.id === "fries")?.esAlternates).toEqual(["papas", "patatas fritas"]);
   });
 
   it("keeps sentence tiles aligned with the full sentence", () => {

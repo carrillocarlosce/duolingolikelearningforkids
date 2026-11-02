@@ -1,3 +1,4 @@
+import { examLine, examLines, type ExamLine } from "@/domain/content/exam";
 import { acceptedForms, getVocab, vocabulary, type VocabItem } from "@/domain/content/vocabulary";
 import {
   acceptedSentenceForms,
@@ -6,6 +7,7 @@ import {
   sentences,
   sentenceTokens,
   type Sentence,
+  type SentenceScene,
 } from "@/domain/content/sentences";
 import type { Exercise, MatchSide } from "@/domain/exercises";
 import type { Direction, Lang } from "@/domain/language";
@@ -439,6 +441,187 @@ function sellerRound(lines: readonly Sentence[], answer: Lang, rng: () => number
   };
 }
 
+const TILE_DISTRACTORS = ["the", "or", "with", "my"] as const;
+const FILL_DISTRACTORS = ["the", "or", "with"] as const;
+
+function examScene(line: ExamLine): SentenceScene {
+  return { mascot: "shop", emojis: line.imageIds.map((id) => getVocab(id).emoji) };
+}
+
+function copyLine(line: ExamLine): Exercise {
+  return {
+    id: "",
+    type: "type",
+    promptLang: "en",
+    answerLang: "en",
+    promptText: line.en,
+    hidePromptText: false,
+    speakText: line.en,
+    accepted: [line.en],
+    emoji: "",
+    sentenceId: line.id,
+    sourceLang: "es",
+    sourceText: line.es,
+    scene: examScene(line),
+    strict: true,
+    retryUntilCorrect: true,
+    exam: true,
+  };
+}
+
+function buildLine(line: ExamLine, rng: () => number): Exercise {
+  const answerTokens = [...line.enTokens];
+  const extras = TILE_DISTRACTORS.filter(
+    (token) => !answerTokens.some((answer) => normalizeToken(answer) === normalizeToken(token)),
+  );
+  let tiles = shuffled([...answerTokens, ...extras], rng);
+  const alreadySolved =
+    tiles.length === answerTokens.length && tiles.every((token, index) => token === answerTokens[index]);
+  if (alreadySolved && tiles.length > 1) {
+    const [first, second] = tiles;
+    tiles = [second as string, first as string, ...tiles.slice(2)];
+  }
+  return {
+    id: "",
+    type: "build",
+    sentenceId: line.id,
+    promptLang: "es",
+    answerLang: "en",
+    sourceLang: "es",
+    sourceText: line.es,
+    promptText: line.es,
+    showPromptText: true,
+    speakText: line.en,
+    tiles,
+    answerTokens,
+    answerText: line.en,
+    scene: examScene(line),
+    exam: true,
+  };
+}
+
+function clozeToken(tokens: readonly string[], label: string): string {
+  let replaced = false;
+  return tokens
+    .map((token) => {
+      if (!replaced && normalizeToken(token) === normalizeToken(label)) {
+        replaced = true;
+        return "___";
+      }
+      return token;
+    })
+    .join(" ");
+}
+
+function functionWord(line: ExamLine): { id: string; label: string } {
+  const and = line.enTokens.find((token) => normalizeToken(token) === "and");
+  if (and) return { id: "and", label: and };
+  const article = line.enTokens.find((token) => normalizeToken(token) === "a");
+  if (article) return { id: "a", label: article };
+  throw new Error(`Exam line ${line.id} has no function word`);
+}
+
+function functionFill(line: ExamLine, rng: () => number): Exercise {
+  const word = functionWord(line);
+  const choiceLabels: Record<string, string> = {
+    [word.id]: word.label,
+    the: "the",
+    or: "or",
+    with: "with",
+  };
+  return {
+    id: "",
+    type: "fill",
+    sentenceId: line.id,
+    itemId: word.id,
+    choiceIds: shuffled([word.id, ...FILL_DISTRACTORS], rng),
+    choiceLabels,
+    answerLang: "en",
+    clozeText: clozeToken(line.enTokens, word.label),
+    speakText: line.en,
+    scene: examScene(line),
+    exam: true,
+  };
+}
+
+function blankOut(sentence: string, word: string): string {
+  const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const next = sentence.replace(new RegExp(`\\b${escaped}\\b`, "i"), "___");
+  if (next === sentence) throw new Error(`Could not blank "${word}" in "${sentence}"`);
+  return next;
+}
+
+function foodFill(line: ExamLine, pool: readonly string[], rng: () => number): Exercise {
+  const itemId = line.imageIds[line.imageIds.length - 1];
+  if (!itemId) throw new Error(`Exam line ${line.id} has no food`);
+  return {
+    id: "",
+    type: "fill",
+    sentenceId: line.id,
+    itemId,
+    choiceIds: choices(itemId, pool, rng),
+    answerLang: "en",
+    clozeText: blankOut(line.en, getVocab(itemId).en),
+    speakText: line.en,
+    scene: examScene(line),
+    exam: true,
+  };
+}
+
+function recallLine(line: ExamLine): Exercise {
+  return {
+    id: "",
+    type: "type",
+    promptLang: "en",
+    answerLang: "en",
+    promptText: "",
+    hidePromptText: true,
+    speakText: line.en,
+    accepted: [line.en],
+    emoji: line.emoji,
+    scene: examScene(line),
+    strict: true,
+    retryUntilCorrect: true,
+    exam: true,
+  };
+}
+
+function menuLine(line: ExamLine, lines: readonly ExamLine[], index: number, title: string): Exercise {
+  return {
+    id: "",
+    type: "type",
+    promptLang: "en",
+    answerLang: "en",
+    promptText: "",
+    hidePromptText: true,
+    speakText: line.en,
+    accepted: [line.en],
+    emoji: "",
+    scene: { mascot: "shop", emojis: [] },
+    strict: true,
+    retryUntilCorrect: true,
+    exam: true,
+    menuCard: {
+      title,
+      rows: lines.map((item, rowIndex) => ({
+        emoji: item.emoji,
+        text: item.en,
+        state: rowIndex < index ? "done" : rowIndex === index ? "now" : "later",
+      })),
+    },
+  };
+}
+
+function examRound(lesson: LessonSummary, pool: readonly string[], rng: () => number): Exercise[] {
+  if (lesson.skill === "exam") {
+    if (!lesson.examLineId) throw new Error(`Exam lesson ${lesson.id} has no exam line`);
+    const line = examLine(lesson.examLineId);
+    return [copyLine(line), buildLine(line, rng), functionFill(line, rng), foodFill(line, pool, rng), recallLine(line)];
+  }
+  const lines = examLines();
+  return lines.map((line, index) => menuLine(line, lines, index, lesson.title.es));
+}
+
 export interface LessonBuildOptions {
   /** When false, the writing lesson uses spell-the-word instead of tracing. Defaults to tracing. */
   letterTracing?: boolean;
@@ -458,6 +641,7 @@ function skillExercises(
   options: LessonBuildOptions,
 ): Exercise[] | null {
   if (!lesson.skill) return null;
+  if (lesson.skill === "exam" || lesson.skill === "exam-menu") return examRound(lesson, pool, rng);
   const steps: Exercise[] = [];
   switch (lesson.skill) {
     case "recognize":

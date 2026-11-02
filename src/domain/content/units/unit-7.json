@@ -140,6 +140,20 @@
       ],
       "emoji": "🌭",
       "healthy": false
+    },
+    {
+      "id": "fries",
+      "en": "fries",
+      "es": "papas fritas",
+      "enAlternates": [
+        "french fries"
+      ],
+      "esAlternates": [
+        "papas",
+        "patatas fritas"
+      ],
+      "emoji": "🍟",
+      "healthy": false
     }
   ],
   "sentences": [
@@ -1661,6 +1675,44 @@
         "chicken-salad"
       ],
       "skill": "checkpoint"
+    }
+  ],
+  "examLines": [
+    {
+      "id": "ice-cream-and-cake",
+      "en": "Ice cream and cake",
+      "es": "Helado y torta",
+      "enTokens": ["Ice", "cream", "and", "cake"],
+      "esTokens": ["Helado", "y", "torta"],
+      "imageIds": ["ice-cream", "cake"],
+      "emoji": "🍦"
+    },
+    {
+      "id": "a-fruit-salad",
+      "en": "A fruit salad",
+      "es": "Una ensalada de frutas",
+      "enTokens": ["A", "fruit", "salad"],
+      "esTokens": ["Una", "ensalada", "de", "frutas"],
+      "imageIds": ["fruit", "salad"],
+      "emoji": "🥗"
+    },
+    {
+      "id": "sandwich-and-milk",
+      "en": "Sandwich and milk",
+      "es": "Sándwich y leche",
+      "enTokens": ["Sandwich", "and", "milk"],
+      "esTokens": ["Sándwich", "y", "leche"],
+      "imageIds": ["sandwich", "milk"],
+      "emoji": "🥪"
+    },
+    {
+      "id": "hamburger-and-fries",
+      "en": "Hamburger and fries",
+      "es": "Hamburguesa y papas fritas",
+      "enTokens": ["Hamburger", "and", "fries"],
+      "esTokens": ["Hamburguesa", "y", "papas", "fritas"],
+      "imageIds": ["hamburger", "fries"],
+      "emoji": "🍔"
     }
   ]
 }
